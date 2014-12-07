@@ -49,7 +49,13 @@ class TLSConnection(object):
             'type': type,
             'data': data,
         }
-        self.message(jsonobj)
+        return self.message(jsonobj)
+
+    def send(self, data):
+        self.sslclientsocket.sendall(data)
+
+    def recv(self, nbytes):
+        self.sslclientsocket.recv(nbytes)
 
     def close(self):
         ignore_fail(self.sslclientsocket.close)
