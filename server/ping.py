@@ -15,11 +15,11 @@ def send_ping(ip, port):
     hostname = socket.gethostname()
 
     jsonobj = {'uuid': uuid, 'name': hostname,
-               'type': "ping", 'data': ""}
+               'type': "ping", 'data': None}
 
     try:
         with TLSConnection(ip, port) as conn:
-            conn.message(jsonobj)
+            conn.command('ping')
     except Exception as e:
         print(e)
 

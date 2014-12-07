@@ -39,6 +39,18 @@ class TLSConnection(object):
         self.sslclientsocket.sendall(message)
         return self.sslclientsocket.recv(2)
 
+    def command(self, type, data=None):
+        uuid = configmanager.uuid
+        hostname = socket.gethostname()
+
+        jsonobj = {
+            'uuid': uuid,
+            'name': hostname,
+            'type': type,
+            'data': data,
+        }
+        self.message(jsonobj)
+
     def close(self):
         ignore_fail(self.sslclientsocket.close)
         ignore_fail(self.sslclientsocket.shutdown)
