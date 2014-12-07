@@ -1,15 +1,16 @@
 #!/usr/bin/env python2
 
-import os
 import sys
 import socket
+import argparse
 import configmanager
-import json
 from tls import TLSConnection
-from OpenSSL import SSL, crypto
+
+parser = argparse.ArgumentParser()
+parser.add_argument('ip', help='ip/hostname of the phone to ping')
+parser.add_argument('port', type=int, help='port of the service')
 
 def send_ping(ip, port):
-    HOST, PORT = ip, int(port)
     uuid = configmanager.uuid
     hostname = socket.gethostname()
 
@@ -23,17 +24,12 @@ def send_ping(ip, port):
         print(e)
 
 
-
-def main(args):
-    ip = args[1]
-    port = args[2]
-    send_ping(ip, port)
+def main(args=None):
+    options = parser.parse_args(args)
+    send_ping(options.ip, options.port)
 
 
 if __name__ == '__main__':
-    if(len(sys.argv) < 3):
-        print "not enough arguments given"
-    else:
-        main(sys.argv)
+    main()
 
 
