@@ -11,12 +11,6 @@ parser.add_argument('ip', help='ip/hostname of the phone to ping')
 parser.add_argument('port', type=int, help='port of the service')
 
 def send_ping(ip, port):
-    uuid = configmanager.uuid
-    hostname = socket.gethostname()
-
-    jsonobj = {'uuid': uuid, 'name': hostname,
-               'type': "ping", 'data': None}
-
     try:
         with TLSConnection(ip, port) as conn:
             conn.command('ping')
