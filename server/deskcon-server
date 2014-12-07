@@ -44,25 +44,26 @@ def reload_config():
     AUTO_OPEN_URLS = configmanager.auto_open_urls
     AUTO_STORE_CLIPBOARD = configmanager.auto_store_clipboard
 
+
 class Connector():
     def __init__(self):
         signal.signal(signal.SIGINT, self.signal_handler)
-        signal.signal(signal.SIGUSR1, self.signal_handler)     
-        self.uuid_list = {}   
+        signal.signal(signal.SIGUSR1, self.signal_handler)
+        self.uuid_list = {}
         self.mid_info = {'phones': [], 'settings': {}}
-        self.last_notification = "";
+        self.last_notification = ""
 
-        self.dbus_service_thread = DbusThread(self)    
-        self.dbus_service_thread.daemon = True        
+        self.dbus_service_thread = DbusThread(self)
+        self.dbus_service_thread.daemon = True
 
         self.sslserver = sslserver(self)
         self.sslserver.daemon = True
 
     def run(self):
         GObject.threads_init()
-        self.dbus_service_thread.start()   
+        self.dbus_service_thread.start()
         self.sslserver.start()
-        print "Server started"        
+        print "Server started"
         signal.pause()
 
     def signal_handler(self, signum, frame):
@@ -96,18 +97,19 @@ class Connector():
         msgtype = jsondata['type']
         message = jsondata['data']
 
-        print "UUID ",uuid
-        print "NAME ",name
-        print "TYPE ",msgtype
-        print "MSG ",message    
-        
+        print "UUID", uuid
+        print "NAME", name
+        print "TYPE", msgtype
+        print "MSG", message
+
         if uuid not in self.uuid_list:
-            self.mid_info['phones'].append({'uuid': uuid, 'name': name, 
-                                        'battery': -1, 'volume': -1, 
-                                        'batterystate': False, 'missedsmscount': 0, 
-                                        'missedcallcount': 0, 'ip': address, 
-                                        'canmessage': False, 'controlport': 9096,
-                                        'storage': -1})
+            self.mid_info['phones'].append({
+                'uuid': uuid, 'name': name,
+                'battery': -1, 'volume': -1,
+                'batterystate': False, 'missedsmscount': 0,
+                'missedcallcount': 0, 'ip': address,
+                'canmessage': False, 'controlport': 9096,
+                'storage': -1})
 
             apos = 0
             for x in range(0, len(self.mid_info['phones'])):
@@ -118,55 +120,65 @@ class Connector():
             print "created "+uuid+" at pos "+str(apos)
 
         pos = self.uuid_list[uuid]
+        phone = self.mid_info['phones'][pos]
 
         if (msgtype == "STATS"):
             newstats = json.loads(message)
-            if (newstats.has_key('volume')): 
-                self.mid_info['phones'][pos]['volume'] = newstats['volume']
-            if (newstats.has_key('controlport')): 
-                self.mid_info['phones'][pos]['controlport'] = newstats['controlport']
-            if (newstats.has_key('battery')): 
-                self.mid_info['phones'][pos]['battery'] = newstats['battery']
-                self.mid_info['phones'][pos]['batterystate'] = newstats['batterystate']
-            if (newstats.has_key('missedmsgs')): 
-                self.mid_info['phones'][pos]['missedsmscount'] = newstats['missedmsgs']
-            if (newstats.has_key('missedcalls')): 
-                self.mid_info['phones'][pos]['missedcallcount'] = newstats['missedcalls']
-            if (newstats.has_key('canmessage')): 
-                self.mid_info['phones'][pos]['canmessage'] = newstats['canmessage']
-            if (newstats.has_key('storage')): 
-                self.mid_info['phones'][pos]['storage'] = newstats['storage']
-            self.mid_info['phones'][pos]['ip'] = address
-       
+
+            def maybe_transfer(key, new=None):
+                if key in newstats:
+                    if new is not None:
+                        phone[new] = newstats[key]
+                    else:
+                        phone[key] = newstats[key]
+
+            maybe_transfer('volume')
+            maybe_transfer('controlport')
+            maybe_transfer('battery')
+            maybe_transfer('batterystate')
+            maybe_transfer('volume')
+            maybe_transfer('volume')
+            maybe_transfer('missedmsgs', 'missedsmscount')
+            maybe_transfer('missedcalls', 'missedcallcount')
+            maybe_transfer('canmessage')
+            maybe_transfer('storage')
+            phone['ip'] = address
+
         elif (msgtype == "SMS"):
-            smsobj = json.loads(message)            
+            smsobj = json.loads(message)
             name = smsobj['name']
             number = smsobj['number']
             smsmess = smsobj['message']
-            notificationmanager.buildSMSReceivedNotification(name, number, smsmess, address, self.mid_info['phones'][pos]['controlport'], self.compose_sms)
-            
+            notificationmanager.buildSMSReceivedNotification(
+                name, number, smsmess, address,
+                phone['controlport'], self.compose_sms)
+
         elif (msgtype == "CALL"):
-            notificationmanager.buildTransientNotification(name, "incoming Call from "+message)
-            
+            notificationmanager.buildTransientNotification(
+                name, "incoming Call from " + message)
+
         elif (msgtype == "URL"):
-            if (AUTO_OPEN_URLS):              
-                webbrowser.open(message, 0 ,True)
+            if (AUTO_OPEN_URLS):
+                webbrowser.open(message, 0, True)
             else:
                 notificationmanager.buildNotification("URL", "Link: "+message)
 
         elif (msgtype == "CLPBRD"):
             clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
             clipboard.set_text(message, -1)
-            notificationmanager.buildTransientNotification("Clipboard", message)   
+            notificationmanager.buildTransientNotification(
+                "Clipboard", message)
 
         elif (msgtype == "MIS_CALL"):
-            notificationmanager.buildNotification(name, "missed Call from "+message)
+            notificationmanager.buildNotification(
+                name, "missed Call from " + message)
 
         elif (msgtype == "PING"):
-            notificationmanager.buildTransientNotification("Ping from "+name, 
-                                                            "Name: "+name+
-                                                            "\nUUID: "+uuid+
-                                                            "\nIP: "+address)
+            notificationmanager.buildTransientNotification(
+                "Ping from " + name,
+                "Name: " + name +
+                "\nUUID: " + uuid +
+                "\nIP: " + address)
 
         elif (msgtype == "OTH_NOT"):
             msginfo = message.split(': ', 1)
@@ -177,9 +189,11 @@ class Connector():
                 if (len(msginfo) > 1):
                     sender = msginfo[0]
                     notification = msginfo[1]
-                    notificationmanager.buildTransientNotification(sender, notification)
+                    notificationmanager.buildTransientNotification(
+                        sender, notification)
                 else:
-                    notificationmanager.buildTransientNotification(name, message)
+                    notificationmanager.buildTransientNotification(
+                        name, message)
 
         elif (msgtype == "FILE_UP"):
             filenames = json.loads(message)
@@ -187,12 +201,14 @@ class Connector():
                 print "accepted"
                 filetransfer.write_files(filenames, csocket)
             else:
-                accepted = notificationmanager.buildIncomingFileNotification(filenames, name)
-                print "wait for ui"       
+                accepted = notificationmanager.buildIncomingFileNotification(
+                    filenames, name)
+                print "wait for ui"
                 if (accepted):
                     print "accepted"
                     fpaths = filetransfer.write_files(filenames, csocket)
-                    notificationmanager.buildFileReceivedNotification(fpaths, self.open_file)
+                    notificationmanager.buildFileReceivedNotification(
+                        fpaths, self.open_file)
                 else:
                     print "not accepted"
 
@@ -203,7 +219,6 @@ class Connector():
             print "ERROR: Non parsable Data received"
 
         #print json.dumps(self.mid_info)
-
 
     def compose_sms(self, number, ip, port):
         subprocess.Popen([PROGRAMDIR+"/sms.py", ip, port, number], stdin=subprocess.PIPE,
@@ -223,7 +238,7 @@ class Connector():
         if platform.system() == "Windows":
             os.startfile(path)
         elif platform.system() == "Darwin":
-            subprocess.Popen(["open", path], stdin=subprocess.PIPE, 
+            subprocess.Popen(["open", path], stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         else:
             subprocess.Popen(["xdg-open", path], stdin=subprocess.PIPE,
@@ -261,21 +276,21 @@ class sslserver(threading.Thread):
             if (len(error)>0):  # ignore empty cafile error
                 print error
         self.sslserversocket = SSL.Connection(ctx, socket.socket(socket.AF_INET,
-                             socket.SOCK_STREAM))                
+                             socket.SOCK_STREAM))
 
-        self.sslserversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)     
-        self.sslserversocket.bind(('', SECUREPORT)) 
+        self.sslserversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sslserversocket.bind(('', SECUREPORT))
         self.sslserversocket.listen(5)
         while self.running:
             sslcsocket = None
             try:
                 sslcsocket, ssladdress = self.sslserversocket.accept()
                 address = format(ssladdress[0])
-                print "SSL connected"                
+                print "SSL connected"
                 # receive data
                 data = sslcsocket.recv(4096)
                 self.conn.parseData(data, address, sslcsocket)
-                # emit new data dbus Signal      
+                # emit new data dbus Signal
                 self.conn.dbus_service_thread.emit_changed_signal()
             except Exception as e:
                 errnum = e[0]
@@ -286,7 +301,7 @@ class sslserver(threading.Thread):
                 if sslcsocket:
                     sslcsocket.shutdown()
                     sslcsocket.close()
-        
+
         print "Server stopped"
 
     def stop(self):
