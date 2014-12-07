@@ -4,11 +4,7 @@ import sys
 import socket
 import argparse
 import configmanager
-from tls import TLSConnection
-
-parser = argparse.ArgumentParser()
-parser.add_argument('ip', help='ip/hostname of the phone to ping')
-parser.add_argument('port', type=int, help='port of the service')
+from tls import TLSConnection, parser
 
 def send_ping(ip, port):
     try:

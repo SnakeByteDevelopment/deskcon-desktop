@@ -2,14 +2,18 @@
 
 import os
 import sys
-import socket
-import configmanager
 import tls
-import json
-from OpenSSL import SSL, crypto
+import argparse
+parser = argparse.ArgumentParser(parents=[tls.parser], add_help=False)
+parser.add_argument(
+    'number', nargs='?',
+    help='optional phone number',
+    default='')
+
 from gi.repository import Gtk, GObject
 
-class EntryWindow():
+
+class EntryWindow(object):
 
     def __init__(self, ip, port, number):
 
@@ -46,8 +50,7 @@ class EntryWindow():
             self.errordialog.run()
             self.errordialog.hide()
         else:
-            send_sms(number,txt, self.ip, self.port, self.errordialog)
-
+            send_sms(number, txt, self.ip, self.port, self.errordialog)
 
     def on_cancelbutton_clicked(self, widget):
         Gtk.main_quit()
@@ -58,20 +61,24 @@ class EntryWindow():
     def on_errordialog_close(self, widget):
         Gtk.main_quit()
 
+    def run(self):
+        Gtk.main()
 
-def send_sms(recver, msg, ip, port, errordialog):
-    HOST, PORT = ip, int(port)
+
+def send_sms(recver, msg, host, port, errordialog):
 
     data = {'number': recver, 'message': msg}
 
     try:
-        with tls.TLSConnection(HOST, PORT) as conn:
+        with tls.TLSConnection(host, port) as conn:
             conn.command('sms', data)
     except Exception as e:
         errnum = e[0]
         print "Error " + str(e[0])
         if (errnum == -5):
-            errordialog.format_secondary_text("The Device is not reachable. Maybe it's not on your Network")
+            errordialog.format_secondary_text(
+                "The Device is not reachable. "
+                "Maybe it's not on your Network")
         else:
             errordialog.format_secondary_text("Errornumber "+str(errnum))
         errordialog.run()
@@ -81,23 +88,14 @@ def send_sms(recver, msg, ip, port, errordialog):
         Gtk.main_quit()
 
 
-def main(args):
+def main(options):
     GObject.threads_init()
-    ip = args[1]
-    port = args[2]
-    if (len(args) == 4):
-        number = args[3]
-    else:
-        number = ""
-
-    win = EntryWindow(ip, port, number)
-    Gtk.main()
+    win = EntryWindow(options.ip, options.port, options.number)
+    win.run()
 
 
 if __name__ == '__main__':
-    if(len(sys.argv) < 3):
-        print "not enough arguments given"
-    else:
-        main(sys.argv)
+    options = parser.parse_args()
+    main(options)
 
 
