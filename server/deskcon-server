@@ -206,14 +206,18 @@ class Connector():
             app = obj['appName']
             title = obj['title']
             text = obj['text']
-            icon = b64decode(obj['icon']);
-            loader = GdkPixbuf.PixbufLoader.new_with_type('png')
-            loader.write(icon)
-            pixbuf = loader.get_pixbuf()
-            loader.close()
-                        
-            notificationmanager.buildBigNotification(title, text, pixbuf)
-            print "NOT_BIG captured"
+            new_notification = uuid+"::"+title+" - "+text
+            if (self.last_notification != new_notification):
+                self.last_notification = new_notification
+                self.dbus_service_thread.emit_new_notification_signal()
+                icon = b64decode(obj['icon']);
+                loader = GdkPixbuf.PixbufLoader.new_with_type('png')
+                loader.write(icon)
+                pixbuf = loader.get_pixbuf()
+                loader.close()
+                            
+                notificationmanager.buildBigNotification(title, text, pixbuf)
+                print "NOT_BIG captured"
 
         else:
             print "ERROR: Non parsable Data received"
