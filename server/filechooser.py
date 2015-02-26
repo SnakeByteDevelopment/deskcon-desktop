@@ -85,7 +85,7 @@ def send_data(dialog, files, ip, port, pd):
         sslclientsocket.sendall(data)
         print "wait for ack"
         response = sslclientsocket.recv(2) #wait for Ack
-        if (response == "OK"):
+        if (response == "O"):
             # Get total transfer size
             global total_size
             for filepath in files: #send files
