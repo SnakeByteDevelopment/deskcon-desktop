@@ -19,9 +19,11 @@ import threading
 import thread
 import configmanager
 import mediacontrol
-from gi.repository import Gio, GLib, Gtk, GObject, Gdk
+from gi.repository import Gio, GLib, Gtk, GObject, Gdk, GdkPixbuf
 from OpenSSL import SSL, crypto
+from OpenSSL.SSL import ZeroReturnError
 from dbusservice import DbusThread
+from base64 import *
 
 configmanager.write_pidfile(str(os.getpid()))
 abspath = os.path.abspath(__file__)
@@ -199,6 +201,20 @@ class Connector():
         elif (msgtype == "MEDIACTRL"):
             thread.start_new_thread(mediacontrol.control, (message,))
 
+        elif (msgtype == "NOT_BIG"):
+            obj = json.loads(message)            
+            app = obj['appName']
+            title = obj['title']
+            text = obj['text']
+            icon = b64decode(obj['icon']);
+            loader = GdkPixbuf.PixbufLoader.new_with_type('png')
+            loader.write(icon)
+            pixbuf = loader.get_pixbuf()
+            loader.close()
+                        
+            notificationmanager.buildBigNotification(title, text, pixbuf)
+            print "NOT_BIG captured"
+
         else:
             print "ERROR: Non parsable Data received"
 
@@ -274,6 +290,14 @@ class sslserver(threading.Thread):
                 print "SSL connected"                
                 # receive data
                 data = sslcsocket.recv(4096)
+                try:
+                    while True:
+                        more = sslcsocket.recv(4096)
+                        data += more
+                except ZeroReturnError as e:
+                    #this is no real error. Only no data avail.
+                    pass;
+                
                 self.conn.parseData(data, address, sslcsocket)
                 # emit new data dbus Signal      
                 self.conn.dbus_service_thread.emit_changed_signal()

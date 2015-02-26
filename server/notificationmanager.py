@@ -23,6 +23,14 @@ def buildTransientNotification(header, body):
     notification.set_timeout(1)
     notification.show()
 
+def buildBigNotification(header, body, imagePixbuf):
+    notification=Notify.Notification.new(header, body)
+    notification.set_image_from_pixbuf(imagePixbuf)
+    notification.set_hint("transient", GLib.Variant.new_boolean(True))
+    notification.set_urgency(urgency=Notify.Urgency.NORMAL)
+    notification.set_timeout(1)
+    notification.show()
+
 def buildIncomingFileNotification(filenames, name):
     filenotification_thread = FileNotification(filenames, name)
     value = filenotification_thread.run()
