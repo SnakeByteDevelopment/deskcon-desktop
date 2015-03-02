@@ -210,11 +210,14 @@ class Connector():
             if (self.last_notification != new_notification):
                 self.last_notification = new_notification
                 self.dbus_service_thread.emit_new_notification_signal()
-                icon = b64decode(obj['icon']);
-                loader = GdkPixbuf.PixbufLoader.new_with_type('png')
-                loader.write(icon)
-                pixbuf = loader.get_pixbuf()
-                loader.close()
+                if "icon" in obj:
+                    icon = b64decode(obj['icon']);
+                    loader = GdkPixbuf.PixbufLoader.new_with_type('png')
+                    loader.write(icon)
+                    pixbuf = loader.get_pixbuf()
+                    loader.close()
+                else:
+                    pixbuf = None
                             
                 notificationmanager.buildBigNotification(title, text, pixbuf)
                 print "NOT_BIG captured"

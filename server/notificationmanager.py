@@ -25,7 +25,8 @@ def buildTransientNotification(header, body):
 
 def buildBigNotification(header, body, imagePixbuf):
     notification=Notify.Notification.new(header, body)
-    notification.set_image_from_pixbuf(imagePixbuf)
+    if (imagePixbuf is not None):
+        notification.set_image_from_pixbuf(imagePixbuf)
     notification.set_hint("transient", GLib.Variant.new_boolean(True))
     notification.set_urgency(urgency=Notify.Urgency.NORMAL)
     notification.set_timeout(1)
