@@ -19,25 +19,26 @@ cafilepath = os.path.join(keydir, "cas.pem")
 
 def copy_default_config():
     if os.path.isdir(configdir):
-        shutil.copyfile(default_configfile, configfile)  
+        shutil.copyfile(default_configfile, configfile)
     else:
         os.mkdir(configdir)
         os.mkdir(keydir)
         shutil.copyfile(default_configfile, configfile)
 
+def write_file(path, data):
+    with open(path, 'w') as fp:
+        fp.write(data)
+
 def gen_and_store_keys(uuid):
     certificate, privatekey = authentication.generate_keypair(uuid)
-    with open(privatekeypath, 'w') as the_file:
-        the_file.write(privatekey)
-    with open(certificatepath, 'w') as the_file:
-        the_file.write(certificate)
-    with open(cafilepath, 'w') as the_file:
-        the_file.write("")
+    write_file(privatekeypath, privatekey)
+    write_file(certificatepath, certificate)
+    write_file(cafilepath, '')
 
 # if no config file present, setup config files
 if os.path.isfile(configfile):
-    config.read(configfile)    
-    privatekey = open(privatekeypath, "r").read()    
+    config.read(configfile)
+    privatekey = open(privatekeypath, "r").read()
     certificate = open(certificatepath, "r").read()
 else:
     print "created new config file"
@@ -60,7 +61,7 @@ def load():
     global port, secure_port, bindip, uuid, downloaddir, auto_store_clipboard
     global auto_open_urls, auto_accept_files
     if os.path.isfile(configfile):
-        config.read(configfile)    
+        config.read(configfile)
     port = config.get('network', 'port')
     secure_port = config.get('network', 'secure_port')
     bindip = config.get('network', 'bindip')

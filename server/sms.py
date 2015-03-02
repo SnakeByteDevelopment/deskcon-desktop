@@ -2,13 +2,18 @@
 
 import os
 import sys
-import socket
-import configmanager
-import json
-from OpenSSL import SSL, crypto
+import tls
+import argparse
+parser = argparse.ArgumentParser(parents=[tls.parser], add_help=False)
+parser.add_argument(
+    'number', nargs='?',
+    help='optional phone number',
+    default='')
+
 from gi.repository import Gtk, GObject
 
-class EntryWindow():
+
+class EntryWindow(object):
 
     def __init__(self, ip, port, number):
 
@@ -45,8 +50,7 @@ class EntryWindow():
             self.errordialog.run()
             self.errordialog.hide()
         else:
-            send_sms(number,txt, self.ip, self.port, self.errordialog)
-        
+            send_sms(number, txt, self.ip, self.port, self.errordialog)
 
     def on_cancelbutton_clicked(self, widget):
         Gtk.main_quit()
@@ -57,75 +61,41 @@ class EntryWindow():
     def on_errordialog_close(self, widget):
         Gtk.main_quit()
 
+    def run(self):
+        Gtk.main()
 
-def send_sms(recver, msg, ip, port, errordialog):
-    HOST, PORT = ip, int(port)
-    uuid = configmanager.uuid
-    hostname = socket.gethostname()
 
-    jsonobj = {'uuid': uuid, 'name': hostname, 
-               'type': "sms", 'data': {'number': recver, 'message': msg}}
+def send_sms(recver, msg, host, port, errordialog):
 
-    data = json.dumps(jsonobj)
+    data = {'number': recver, 'message': msg}
 
-    # Initialize context
-    ctx = SSL.Context(SSL.TLSv1_METHOD)
-    ctx.set_options(SSL.OP_NO_SSLv2|SSL.OP_NO_SSLv3) #TLS1 and up
-    ctx.set_verify(SSL.VERIFY_PEER, verify_cb) #Demand a certificate
-    ctx.use_privatekey_file(configmanager.privatekeypath)
-    ctx.use_certificate_file(configmanager.certificatepath)
-    ctx.load_verify_locations(configmanager.cafilepath)                
-    sslclientsocket = SSL.Connection(ctx, socket.socket(socket.AF_INET, socket.SOCK_STREAM))
-
-    succ = False
     try:
-        sslclientsocket.connect((HOST, PORT))
-        sslclientsocket.sendall(data)
-        sslclientsocket.recv(2)
-        succ = True
-
+        with tls.TLSConnection(host, port) as conn:
+            conn.command('sms', data)
     except Exception as e:
         errnum = e[0]
         print "Error " + str(e[0])
         if (errnum == -5):
-            errordialog.format_secondary_text("The Device is not reachable. Maybe it's not on your Network")
+            errordialog.format_secondary_text(
+                "The Device is not reachable. "
+                "Maybe it's not on your Network")
         else:
             errordialog.format_secondary_text("Errornumber "+str(errnum))
         errordialog.run()
         errordialog.hide()
 
     finally:
-        if (succ):
-            sslclientsocket.shutdown()
-            sslclientsocket.close()
-            Gtk.main_quit()
+        Gtk.main_quit()
 
 
-
-def verify_cb(conn, cert, errnum, depth, ok):
-    # This obviously has to be updated
-    #print "er"+str(errnum)
-    #print "de"+str(depth)
-    #print "ok "+str(ok)
-    return ok
-
-def main(args):
+def main(options):
     GObject.threads_init()
-    ip = args[1]
-    port = args[2]
-    if (len(args) == 4):       
-        number = args[3]
-    else:
-        number = ""
-
-    win = EntryWindow(ip, port, number)
-    Gtk.main()
+    win = EntryWindow(options.ip, options.port, options.number)
+    win.run()
 
 
 if __name__ == '__main__':
-    if(len(sys.argv) < 3):
-        print "not enough arguments given"
-    else:
-        main(sys.argv)
-  
+    options = parser.parse_args()
+    main(options)
+
 
