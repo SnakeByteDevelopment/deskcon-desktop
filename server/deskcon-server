@@ -198,7 +198,9 @@ class Connector():
             filenames = json.loads(message)
             if (AUTO_ACCEPT_FILES):
                 print "accepted"
-                filetransfer.write_files(filenames, csocket)
+                filePaths = filetransfer.write_files(filenames, csocket)
+                notificationmanager.buildFileReceivedNotification(
+                    filePaths, self.open_file)
             else:
                 accepted = notificationmanager.buildIncomingFileNotification(
                     filenames, name)
