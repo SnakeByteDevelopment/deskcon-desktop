@@ -4,14 +4,13 @@ import os
 import sys
 import tls
 import argparse
-parser = argparse.ArgumentParser(parents=[tls.parser], add_help=False)
+from gi.repository import Gtk, GObject
+
+parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument(
     'number', nargs='?',
     help='optional phone number',
     default='')
-
-from gi.repository import Gtk, GObject
-
 
 class EntryWindow(object):
 
