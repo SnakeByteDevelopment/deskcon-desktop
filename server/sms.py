@@ -61,6 +61,7 @@ class EntryWindow(object):
         Gtk.main_quit()
 
     def run(self):
+        GObject.threads_init()
         Gtk.main()
 
 

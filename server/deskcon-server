@@ -9,21 +9,18 @@ import signal
 import subprocess
 import platform
 import json
-import time
-import sms
 import os
 import notificationmanager
 import filetransfer
-import authentication
 import threading
 import thread
 import configmanager
 import mediacontrol
-from gi.repository import Gio, GLib, Gtk, GObject, Gdk, GdkPixbuf
-from OpenSSL import SSL, crypto
+from gi.repository import Gtk, GObject, Gdk, GdkPixbuf
+from OpenSSL import SSL
 from OpenSSL.SSL import ZeroReturnError
 from dbusservice import DbusThread
-from base64 import *
+from base64 import b64decode
 
 configmanager.write_pidfile(str(os.getpid()))
 abspath = os.path.abspath(__file__)
@@ -285,6 +282,7 @@ class sslserver(threading.Thread):
         self.conn = conn
 
     def run(self):
+        GObject.threads_init()
         # Initialize context
         try:
             ctx = SSL.Context(SSL.SSLv23_METHOD)
@@ -347,9 +345,9 @@ class sslserver(threading.Thread):
 
 def verify_cb(conn, cert, errnum, depth, ok):
     # This obviously has to be updated
-    print "er"+str(errnum)
-    print "de"+str(depth)
-    print "ok "+str(ok)
+    #print "er"+str(errnum)
+    #print "de"+str(depth)
+    #print "ok "+str(ok)
     return ok
 
 

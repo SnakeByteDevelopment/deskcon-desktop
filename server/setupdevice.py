@@ -81,6 +81,7 @@ class discoveryThread (threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        GObject.threads_init()
         UDP_IP = "0.0.0.0"
         UDP_PORT = 5108
 
@@ -114,6 +115,7 @@ class pairingThread (threading.Thread):
         self.pairprocess.daemon = True
 
     def run(self):
+        GObject.threads_init()
         self.pairprocess.start()
         fingerprints = self.q.get(True)
         self.window.desktopfplabel.set_text(fingerprints[0])
