@@ -313,14 +313,18 @@ class sslserver(threading.Thread):
                 # receive data
                 data = sslcsocket.recv(4096)
                 try:
-                    while True:
-                        more = sslcsocket.recv(4096)
-                        data += more
-                except ZeroReturnError as e:
-                    #this is no real error. Only no data avail.
-                    pass;
-                
-                self.conn.parseData(data, address, sslcsocket)
+                    #maybe this is already parseble. than don't wait as the client may wait for us then
+                    self.conn.parseData(data, address, sslcsocket)
+                except:
+                    try:
+                        while True:
+                            more = sslcsocket.recv(4096)
+                            data += more
+                    except ZeroReturnError as e:
+                        #this is no real error. Only no data avail.
+                        pass;
+
+                    self.conn.parseData(data, address, sslcsocket)
                 # emit new data dbus Signal
                 self.conn.dbus_service_thread.emit_changed_signal()
             except Exception as e:
@@ -343,9 +347,9 @@ class sslserver(threading.Thread):
 
 def verify_cb(conn, cert, errnum, depth, ok):
     # This obviously has to be updated
-    #print "er"+str(errnum)
-    #print "de"+str(depth)
-    #print "ok "+str(ok)
+    print "er"+str(errnum)
+    print "de"+str(depth)
+    print "ok "+str(ok)
     return ok
 
 
