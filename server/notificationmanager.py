@@ -24,9 +24,19 @@ def buildTransientNotification(header, body):
     notification.show()
 
 def buildBigNotification(header, body, imagePixbuf):
-    notification=Notify.Notification.new(header, body)
-    if (imagePixbuf is not None):
-        notification.set_image_from_pixbuf(imagePixbuf)
+    if imagePixbuf is not None:
+        print "width", imagePixbuf.get_width()
+        print "height", imagePixbuf.get_height()
+        if imagePixbuf.get_height() > 50 and imagePixbuf.get_width() > 50:
+            # Ugly workaround: we need to set an icon via path if we want the pixbuf to be displayed 'big'.
+            # to have the image in icon and content save it and use it then.
+            # ToDo: should obvoiusly use some better paths, maybe some hash of the file.
+            imagePixbuf.savev(os.path.expanduser('~')+"/.deskcon/cache/tmp.png", "png", (), ())
+            notification=Notify.Notification.new(header, body, os.path.expanduser('~')+"/.deskcon/cache/tmp.png")
+            notification.set_image_from_pixbuf(imagePixbuf)
+        else:
+            notification=Notify.Notification.new(header, body)
+            notification.set_image_from_pixbuf(imagePixbuf)
     notification.set_hint("transient", GLib.Variant.new_boolean(True))
     notification.set_urgency(urgency=Notify.Urgency.NORMAL)
     notification.set_timeout(1)
