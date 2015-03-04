@@ -225,7 +225,7 @@ class Connector():
                 self.last_notification = new_notification
                 self.dbus_service_thread.emit_new_notification_signal()
                 if "icon" in obj:
-                    icon = b64decode(obj['icon']);
+                    icon = b64decode(obj['icon'])
                     loader = GdkPixbuf.PixbufLoader.new_with_type('png')
                     loader.write(icon)
                     pixbuf = loader.get_pixbuf()
