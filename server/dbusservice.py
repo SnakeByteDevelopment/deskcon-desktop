@@ -72,3 +72,10 @@ class DbusThread(threading.Thread):
         @dbus.service.signal(dbusname)
         def new_notification(self):
             pass
+
+        @dbus.service.method(dbusname, in_signature='s')
+        def set_clipboard(self, host):
+            print "dbus set clipboard"
+            ip = host.split(":")[0]
+            port = host.split(":")[1]
+            self.connector.set_clipboard(ip, port)

@@ -27,6 +27,9 @@ const iface = '<node> \
         <method name="send_file"> \
             <arg type="s" direction="in" name="host" /> \
         </method> \
+        <method name="set_clipboard"> \
+            <arg type="s" direction="in" name="host" /> \
+        </method> \
         <method name="show_settings"> \
         </method> \
         <method name="setup_device"> \
@@ -78,12 +81,12 @@ const DBusClient = new Lang.Class({
         this.proxy.call_sync('compose_sms', parameters, 0, 1000, null);
     },
     pingdevice: function(ip, port) {
-        host = ip + ":" + port;
+        let host = ip + ":" + port;
         let parameters = new GLib.Variant('(s)', [host]);
         this.proxy.call_sync('ping_device', parameters, 0, 1000, null);
     },
     sendfile: function(ip, port) {
-        host = ip + ":" + port;
+        let host = ip + ":" + port;
         let parameters = new GLib.Variant('(s)', [host]);
         this.proxy.call_sync('send_file', parameters, 0, 1000, null);
     },
@@ -92,6 +95,11 @@ const DBusClient = new Lang.Class({
     },
     setupdevice: function() {
         this.proxy.call_sync('setup_device', null, 0, 1000, null);
+    },
+    setClpbrd: function(ip, port) {
+        let host = ip + ":" + port;
+        let parameters = new GLib.Variant('(s)', [host]);
+        this.proxy.call_sync('set_clipboard', parameters, 0, 1000, null);
     },
 });
 
@@ -148,9 +156,11 @@ const DeviceMenuItem = new Lang.Class({
         let pingb = new PopupMenu.PopupMenuItem("Ping");
         let sendfileb = new PopupMenu.PopupMenuItem("Send File(s)");
         let composeb = new PopupMenu.PopupMenuItem("Compose Message");
+        let clipbrdb = new PopupMenu.PopupMenuItem("Push Clipboard");
         composeb.connect('activate', Lang.bind(this, this.composemsg));
         pingb.connect('activate', Lang.bind(this, this.ping));
         sendfileb.connect('activate', Lang.bind(this, this.sendfile));
+        clipbrdb.connect('activate', Lang.bind(this, this.setClpbrd))
 
         this._ip = info.ip;
         this._port = info.controlport;
@@ -162,6 +172,7 @@ const DeviceMenuItem = new Lang.Class({
         }        
         this.infoitem.menu.addMenuItem(sendfileb);        
         this.infoitem.menu.addMenuItem(pingb);
+        this.infoitem.menu.addMenuItem(clipbrdb);
 
         this.notificationsmenuitem = new PopupMenu.PopupSubMenuMenuItem("Notifications");
         let clearb = new PopupMenu.PopupMenuItem("Clear");
@@ -184,6 +195,11 @@ const DeviceMenuItem = new Lang.Class({
 
     sendfile: function(event) {
         dbusclient.sendfile(this._ip, this._port);
+        _indicator.menu.close();
+    },
+
+    setClpbrd: function(event) {
+        dbusclient.setClpbrd(this._ip, this._port);
         _indicator.menu.close();
     },
 

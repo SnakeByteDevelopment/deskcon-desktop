@@ -3,7 +3,6 @@
 # Version 0.2
 
 import socket
-import SocketServer
 import webbrowser
 import signal
 import subprocess
@@ -252,6 +251,11 @@ class Connector():
 
     def send_file(self, ip, port):
         subprocess.Popen([PROGRAMDIR+"/filechooser.py", ip, port], stdin=subprocess.PIPE,
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    def set_clipboard(self, ip, port):
+        print "setting clipboard"
+        subprocess.Popen([PROGRAMDIR+"/setClipboard.py", ip, port], stdin=subprocess.PIPE,
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def open_file(self, path):
