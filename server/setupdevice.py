@@ -30,8 +30,12 @@ class EntryWindow():
 
         pairport = str(configmanager.port)
         openports = pairport + ", " + str(configmanager.secure_port)
-        lanip = socket.gethostname()
-        hosttxt = "Host: "+lanip+" or IP"+"\nPort: "+pairport
+        hostname = socket.gethostname()
+        try:
+            lanip = [(s.connect(('8.8.8.8', 80)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
+        except:
+            lanip = "IP"  #this will fail if no inet. so let's be gentle if this won't work.
+        hosttxt = "Host: "+hostname+" or "+lanip+"\nPort: "+pairport
 
         self.stage = 0
 
