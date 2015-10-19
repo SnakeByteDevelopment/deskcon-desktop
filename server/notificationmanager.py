@@ -117,8 +117,8 @@ class FileReceivedNotification(threading.Thread):
             filestxt = filestxt + "\n" + filename
         filestxt = filestxt.lstrip("\n")
 
-        self.nnotification = Notify.Notification.new ("File received", filestxt, "phone")
-        if (len(self.filenames) == 1):
+        self.nnotification = Notify.Notification.new("File received", filestxt, "phone")
+        if len(self.filenames) == 1:
             # Fedora workaround
             try:
                 self.nnotification.add_action("open_path", "open", self.open_file, filenames[0], None)
@@ -136,11 +136,11 @@ class FileReceivedNotification(threading.Thread):
         self.nnotification.show()
         Gtk.main()
 
-    def open_file(self, ac_name, filename, a):
+    def open_file(self, ac_name, filename, a, b=None):
         Gtk.main_quit()
         self.callback(a)
 
-    def open_folder(self, ac_name, args, a):
+    def open_folder(self, ac_name, args, a, b=None):
         Gtk.main_quit()
         self.callback("")
 
@@ -154,7 +154,7 @@ class SMSReceivedNotification(threading.Thread):
         self.callback = callback
         if name == "":
             name = number
-        self.sms_notification = Notify.Notification.new ("SMS from "+name, message, icon_name)
+        self.sms_notification = Notify.Notification.new("SMS from "+name, message, icon_name)
         # Fedora workaround
         try:
             self.sms_notification.add_action("reply", "reply", self.reply_sms, None, None)
