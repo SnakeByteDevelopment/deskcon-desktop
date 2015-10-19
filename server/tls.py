@@ -37,7 +37,11 @@ class TLSConnection(object):
     def message(self, obj):
         message = json.dumps(obj)
         self.sslclientsocket.sendall(message)
-        return self.sslclientsocket.recv(2)
+        buffer = ""
+        buffer += self.sslclientsocket.recv(2)
+        while len(buffer) < 2:
+            buffer += self.sslclientsocket.recv(1)
+        return buffer
 
     def command(self, type, data=None):
         uuid = configmanager.uuid

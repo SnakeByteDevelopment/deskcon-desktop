@@ -4,6 +4,8 @@ import sys
 import threading
 import json
 import tls
+import gi
+gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject
 
 sent_size = 0
@@ -69,8 +71,8 @@ def send_data(dialog, files, ip, port, pd):
     try:
         with tls.TLSConnection(HOST, PORT) as conn:
             response = conn.command('fileup', data)
-            print response
-            if (response == "O"):
+            print "response: "+response
+            if response == "OK":
                 # Get total transfer size
                 global total_size
                 for filepath in files:

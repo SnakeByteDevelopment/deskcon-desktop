@@ -300,7 +300,7 @@ class sslserver(threading.Thread):
             ctx.load_verify_locations(configmanager.cafilepath)
         except Exception as e:
             error = e[0]
-            if (len(error)>0):  # ignore empty cafile error
+            if len(error)>0:  # ignore empty cafile error
                 print error
         self.sslserversocket = SSL.Connection(ctx, socket.socket(socket.AF_INET,
                              socket.SOCK_STREAM))
@@ -317,7 +317,7 @@ class sslserver(threading.Thread):
                 # receive data
                 data = sslcsocket.recv(4096)
                 try:
-                    #maybe this is already parseble. than don't wait as the client may wait for us then
+                    # maybe this is already parseble. then don't wait as the client may wait for us then
                     self.conn.parseData(data, address, sslcsocket)
                 except:
                     try:
@@ -325,8 +325,8 @@ class sslserver(threading.Thread):
                             more = sslcsocket.recv(4096)
                             data += more
                     except ZeroReturnError as e:
-                        #this is no real error. Only no data avail.
-                        pass;
+                        # this is no real error. Only no data avail.
+                        pass
 
                     self.conn.parseData(data, address, sslcsocket)
                 # emit new data dbus Signal

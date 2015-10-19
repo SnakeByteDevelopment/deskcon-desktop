@@ -1,9 +1,7 @@
-import os
-import subprocess
-import platform
 import time
 import threading
-import sms
+import gi
+gi.require_version('Notify', '0.7')
 from gi.repository import GObject
 from gi.repository import Notify
 from gi.repository import Gio, GLib, Gtk
@@ -67,11 +65,11 @@ class FileNotification(threading.Thread):
                                                         "\nfrom "+name,"phone")
         # Fedora workaround
         try:
-            self.file_notification.add_action("acc_file","accept", self.accept,None, None)
-            self.file_notification.add_action("cancel_file","cancel", self.cancel,None, None) 
+            self.file_notification.add_action("acc_file","accept", self.accept, None, None)
+            self.file_notification.add_action("cancel_file","cancel", self.cancel, None, None)
         except TypeError:
-            self.file_notification.add_action("acc_file","accept", self.accept,None)
-            self.file_notification.add_action("cancel_file","cancel", self.cancel,None) 
+            self.file_notification.add_action("acc_file","accept", self.accept, None)
+            self.file_notification.add_action("cancel_file","cancel", self.cancel, None)
            
 
     def run(self):
@@ -85,12 +83,12 @@ class FileNotification(threading.Thread):
         Gtk.main()
         return self.accepted
 
-    def accept(self, ac_name, args, a):
+    def accept(self, ac_name, args, a, b=None):
         self.waiting_for_user_input = False
         self.accepted = True
         Gtk.main_quit()
 
-    def cancel(self, ac_name, args, a):
+    def cancel(self, ac_name, args, a, b=None):
         self.waiting_for_user_input = False
         self.accepted = False
         Gtk.main_quit()
@@ -123,15 +121,15 @@ class FileReceivedNotification(threading.Thread):
         if (len(self.filenames) == 1):
             # Fedora workaround
             try:
-                self.nnotification.add_action("open_path","open", self.open_file, filenames[0], None)
+                self.nnotification.add_action("open_path", "open", self.open_file, filenames[0], None)
             except TypeError:
-                self.nnotification.add_action("open_path","open", self.open_file, filenames[0])
+                self.nnotification.add_action("open_path", "open", self.open_file, filenames[0])
             
-         # Fedora workaround
+        # Fedora workaround
         try:
-            self.nnotification.add_action("open_folder","open Folder", self.open_folder, "" , None)
+            self.nnotification.add_action("open_folder", "open Folder", self.open_folder, "", None)
         except TypeError:
-            self.nnotification.add_action("open_folder","open Folder", self.open_folder, "" )
+            self.nnotification.add_action("open_folder", "open Folder", self.open_folder, "")
 
     def run(self):
         GObject.threads_init()
