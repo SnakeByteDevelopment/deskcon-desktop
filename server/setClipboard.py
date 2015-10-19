@@ -1,12 +1,12 @@
 #!/usr/bin/env python2
+import gi
+gi.require_version('Gtk', '3.0')
+gi.require_version('Notify', '0.7')
+from gi.repository import Gtk, Gdk
 
-import os
-import sys
-from gi.overrides import Gdk
 import notificationmanager
 import tls
 import argparse
-from gi.repository import Gtk, GObject
 
 parser = argparse.ArgumentParser()
 parser.add_argument('ip', help='ip/hostname of the phone to set the Clipboard')
