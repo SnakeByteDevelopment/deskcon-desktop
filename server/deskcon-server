@@ -107,7 +107,7 @@ class Connector():
                 'batterystate': False, 'missedsmscount': 0,
                 'missedcallcount': 0, 'ip': address,
                 'canmessage': False, 'controlport': 9096,
-                'storage': -1})
+                'storage': -1, 'wifistrength': -1})
 
             apos = 0
             for x in range(0, len(self.mid_info['phones'])):
@@ -134,12 +134,11 @@ class Connector():
             maybe_transfer('controlport')
             maybe_transfer('battery')
             maybe_transfer('batterystate')
-            maybe_transfer('volume')
-            maybe_transfer('volume')
             maybe_transfer('missedmsgs', 'missedsmscount')
             maybe_transfer('missedcalls', 'missedcallcount')
             maybe_transfer('canmessage')
             maybe_transfer('storage')
+            maybe_transfer('wifistrength')
             phone['ip'] = address
 
         elif (msgtype == "SMS"):

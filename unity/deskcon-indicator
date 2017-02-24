@@ -148,6 +148,8 @@ class DeviceMenuBundle():
         volume = str(data['volume'])
         battery = str(data['battery'])
         storage = str(data['storage'])
+        wifistrength = str(data['wifistrength'])
+
         missedsmstxt = ""
         missedcalltxt = ""
         if (data['missedsmscount'] > 0): 
@@ -156,9 +158,11 @@ class DeviceMenuBundle():
             missedcalltxt = "\nmissed Calls "+ str(data['missedcallcount'])
         missedtxt = missedsmstxt+missedcalltxt
         
-        text = (name+
-                "\nBat: "+battery+"% / Vol: "+volume+"% / Str: "+storage+"%"+
-                missedtxt)
+        text = (name + "\nBat: " + battery + "%"
+                + " / Vol: " + volume + "%\n"
+                + "Used Space: " + storage + "%"
+                + " / WiFi: " + wifistrength + "%"
+                + missedtxt)
 
         self.statsitem.set_label(text)
         if (data['canmessage'] and self.composeitem == None):
