@@ -90,6 +90,9 @@ class IndicatorDeskCon:
     def sendfile(self, evt, ip, port):
         self.dbusclient.send_file(ip, port)
 
+    def setclipboard(self, evt, ip, port):
+        self.dbusclient.set_clipboard(ip, port)
+
     def showsettings(self, evt):
         self.dbusclient.show_settings()
 
@@ -125,6 +128,12 @@ class DeviceMenuBundle():
                         data['ip'], data['controlport'])
         self.pingitem.show()
         self.actionmenu.append(self.pingitem)
+
+        self.setclipboarditem = Gtk.MenuItem("Set Clipboard")
+        self.setclipboarditem.connect("activate", self.indicator.setclipboard,
+                        data['ip'], data['controlport'])
+        self.setclipboarditem.show()
+        self.actionmenu.append(self.setclipboarditem)
 
         self.sendfileitem = Gtk.MenuItem("Send File(s)")
         self.sendfileitem.connect("activate", self.indicator.sendfile, 
@@ -241,6 +250,10 @@ class DbusClient():
     def ping(self, ip, port):
         host = ip + ":" + str(port)
         self.iface.ping_device(host)
+
+    def set_clipboard(self, ip, port):
+        host = ip + ":" + str(port)
+        self.iface.set_clipboard(host)
 
     def send_file(self, ip, port):
         host = ip + ":" + str(port)
