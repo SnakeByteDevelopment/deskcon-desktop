@@ -5,12 +5,16 @@ import threading
 import json
 import tls
 import gi
+import argparse
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject
 
 sent_size = 0
 total_size = 0
 
+parser = argparse.ArgumentParser()
+parser.add_argument('ip', help='ip/hostname of the phone')
+parser.add_argument('port', type=int, help='port of the service (default 9096)')
 
 class FileChooserWindow(Gtk.Window):
 
@@ -113,22 +117,11 @@ def update_progress(pd):
     pd.progressbar.set_fraction(perc)
 
 
-def main(args):
+def main(args=None):
+    options = parser.parse_args(args)
     GObject.threads_init()
-    ip = args[1]
-    port = args[2]
     win = FileChooserWindow()
-    win.run(ip, port)
+    win.run(options.ip, options.port)
 
 if __name__ == '__main__':
-    if(len(sys.argv) < 3):
-        print "not enough arguments given"
-    else:
-        main(sys.argv)
-
-
-
-
-
-
-
+    main()
