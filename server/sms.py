@@ -10,7 +10,7 @@ from gi.repository import Gtk, GObject
 
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('ip', help='ip/hostname of the phone to ping')
-parser.add_argument('port', type=int, help='port of the service')
+parser.add_argument('port', type=int, help='port of the service (default 9096)')
 parser.add_argument(
     'number', nargs='?',
     help='optional phone number',

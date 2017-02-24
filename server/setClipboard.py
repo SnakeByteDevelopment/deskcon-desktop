@@ -10,7 +10,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('ip', help='ip/hostname of the phone to set the Clipboard')
-parser.add_argument('port', type=int, help='port of the service')
+parser.add_argument('port', type=int, help='port of the service (default 9096)')
 
 
 def set_clipboard( host, port):
