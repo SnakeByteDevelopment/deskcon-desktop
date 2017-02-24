@@ -18,11 +18,13 @@ glib.init_threads()
 
 class IndicatorDeskCon:
     def __init__(self):
-        workingdir = os.getcwd()
-
-        self.ind = appindicator.Indicator.new("indicator-deskcon", 
+        self.ind = appindicator.Indicator.new("indicator-deskcon",
                             "indicator-deskcon",
                             appindicator.IndicatorCategory.APPLICATION_STATUS)
+
+        curr_dir = os.path.dirname(os.path.realpath(__file__))
+        # first try to get the icon from the installed location, if it fails, try on current directory
+        self.ind.set_icon(os.path.join(curr_dir, 'darkindicator-deskcon.svg'))
 
         self.ind.set_status (appindicator.IndicatorStatus.ACTIVE)
 
