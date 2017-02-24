@@ -1,8 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 import dbus
 import json
 import os
+import signal
 from gi.repository import GObject, Gtk
 from gi.repository import AppIndicator3 as appindicator
 from dbus import glib
@@ -244,5 +245,6 @@ class DbusClient():
 
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     ind = IndicatorDeskCon()
     ind.main()
