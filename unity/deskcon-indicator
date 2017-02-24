@@ -37,7 +37,16 @@ class IndicatorDeskCon:
         self.setupdeviceitem.connect("activate", self.setupdevice)
         self.setupdeviceitem.show()
         self.menu.append(self.setupdeviceitem)
-    
+        #Separator
+        separator = Gtk.SeparatorMenuItem()
+        separator.show()
+        self.menu.append(separator)
+        #Quit Button
+        self.quititem = Gtk.MenuItem("Quit")
+        self.quititem.connect("activate", self.handler_menu_exit)
+        self.quititem.show()
+        self.menu.append(self.quititem)
+
     def update(self):
         try:
             jsonstr = self.dbusclient.getStats()
