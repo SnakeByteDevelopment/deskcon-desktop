@@ -4,10 +4,16 @@ import dbus
 import json
 import os
 import signal
-from gi.repository import GObject, Gtk
-from gi.repository import AppIndicator3 as appindicator
+import gi
+
 from dbus import glib
 from dbus.mainloop.glib import DBusGMainLoop
+
+gi.require_version('Gtk', '3.0')
+gi.require_version('AppIndicator3', '0.1')
+from gi.repository import GObject, Gtk
+from gi.repository import AppIndicator3 as appindicator
+
 glib.init_threads()
 
 class IndicatorDeskCon:
