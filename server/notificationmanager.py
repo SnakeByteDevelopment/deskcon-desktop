@@ -4,7 +4,7 @@ import gi
 gi.require_version('Notify', '0.7')
 from gi.repository import GObject
 from gi.repository import Notify
-from gi.repository import Gio, GLib, Gtk
+from gi.repository import GLib, Gtk
 
 Notify.init ("Desktop Connector")
 icon_name = "phone"
@@ -18,7 +18,6 @@ def buildTransientNotification(header, body):
     notification=Notify.Notification.new (header, body, icon_name)
     notification.set_hint("transient", GLib.Variant.new_boolean(True))
     notification.set_urgency(urgency=Notify.Urgency.NORMAL)
-    notification.set_timeout(1)
     notification.show()
 
 def buildBigNotification(header, body, imagePixbuf):
@@ -31,7 +30,6 @@ def buildBigNotification(header, body, imagePixbuf):
         notification=Notify.Notification.new(header, body)
     notification.set_hint("transient", GLib.Variant.new_boolean(True))
     notification.set_urgency(urgency=Notify.Urgency.NORMAL)
-    notification.set_timeout(1)
     notification.show()
 
 def buildIncomingFileNotification(filenames, name):
