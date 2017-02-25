@@ -24,6 +24,15 @@ Requirements (Desktop Server):
     - pyopenssl
     - GTK3
 
+Requirements (Unity Client):
+------------------------------
+    - Python >= 2.7 < 3.x
+    - from pip:
+        - dbus-python >= 1.2.4
+        - pyOpenSSL >= 16.2.0
+    - install binaries:
+        - pygobject (GTK3) >= 3.22.0
+        - AppIndicator3
 
 Install:
 --------
@@ -31,7 +40,7 @@ Install:
     - start deskcon.sh in Root Folder of the Project
     - (optional) copy the Gnome Shell (>=3.8) Extension to ~/.local/share/gnome-shell/extensions
       and activate it 
-    - (optional) start unity/deskcon-indicator for a Unity Indicator
+    - (optional) start unity/deskcon-indicator.py for a Unity Indicator
     
 
 Usage:
@@ -47,10 +56,13 @@ Usage:
 
 Todo:
 -----
-	- Translations
-	- Mac/Windows support
-	- Fingerprint validation via QR Code
-	- Browser Extensions
+    - Translations
+    - Mac/Windows support
+    - Fingerprint validation via QR Code
+    - Browser Extensions
+    - Add option to automatically share clipboard
+    - Pair client-server using resource discovery (broadcast would work fine)
+    - Use external server to connect without local lan
 
 
 Bugs:
