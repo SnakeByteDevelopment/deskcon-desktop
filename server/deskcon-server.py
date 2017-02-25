@@ -161,10 +161,12 @@ class Connector():
                 notificationmanager.buildNotification("URL", "Link: "+message)
 
         elif (msgtype == "CLPBRD"):
-            clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-            clipboard.set_text(message, -1)
-            notificationmanager.buildTransientNotification(
-                "Clipboard", message)
+            if message == None or len(message) == 0:
+                print "Error, empty text received on clipboard"
+            else:
+                clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+                clipboard.set_text(message.encode("utf-8"), -1)
+                notificationmanager.buildTransientNotification("Clipboard", message)
 
         elif (msgtype == "MIS_CALL"):
             notificationmanager.buildNotification(
