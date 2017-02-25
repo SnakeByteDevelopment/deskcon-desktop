@@ -16,6 +16,18 @@ from gi.repository import AppIndicator3 as appindicator
 
 glib.init_threads()
 
+
+class ErrorDialog(Gtk.MessageDialog):
+    def __init__(self, title, message):
+        Gtk.MessageDialog.__init__(self, type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK)
+
+        # FIXME: icon on message dialog isn't working
+        #img = Gtk.Image.new_from_icon_name("dialog-question", Gtk.IconSize.DIALOG)
+        #self.set_icon(img.get_pixbuf())
+        self.set_title(title)
+        self.set_markup(message)
+
+
 class IndicatorDeskCon:
     def __init__(self):
         self.ind = appindicator.Indicator.new("indicator-deskcon",
@@ -32,7 +44,18 @@ class IndicatorDeskCon:
 
         self.menu.show()
         self.ind.set_menu(self.menu)
-        self.dbusclient = DbusClient(self)
+
+        try:
+            self.dbusclient = DbusClient(self)
+        except dbus.exceptions.DBusException as ex:
+            self.showMessageDialog("DBus Error", "Cannot connect to server. Check if the server is running.", ex)
+            self.handler_menu_exit()
+            raise ex
+        except Exception as ex:
+            self.showMessageDialog("DBus Error", "Unknown error on dbus client.", ex)
+            self.handler_menu_exit()
+            raise ex
+
         self.devicelist = {}
 
         #Settings Button
@@ -54,6 +77,14 @@ class IndicatorDeskCon:
         self.quititem.connect("activate", self.handler_menu_exit)
         self.quititem.show()
         self.menu.append(self.quititem)
+
+    def showMessageDialog(self, title, message, ex):
+        pango_message = '<span size="large">' + message + '\n\nException:\n\n</span>' \
+                        + '<span font_family="monospace">' + ex.message + '</span>'
+        dialog = ErrorDialog(title, pango_message)
+        dialog.run()
+        dialog.destroy()
+        self.handler_menu_exit()
 
     def update(self):
         try:
@@ -86,7 +117,7 @@ class IndicatorDeskCon:
             self.devicelist[uuid].addnotification(text)      
 
     
-    def handler_menu_exit(self, evt):
+    def handler_menu_exit(self, evt=None):
         Gtk.main_quit()
 
     def compose(self, evt, ip, port):
@@ -225,14 +256,14 @@ class DbusClient():
     def __init__(self, indicator):
         self.indicator = indicator
         bus = dbus.SessionBus()
-        try:
-            proxy = bus.get_object("net.screenfreeze.desktopconnector",
-                                   "/net/screenfreeze/desktopconnector",
-                                   True, True)
-            self.iface = dbus.Interface(proxy, 'net.screenfreeze.desktopconnector')
-        except Exception:
-            print "dbus error"
-       
+        proxy = bus.get_object("net.screenfreeze.desktopconnector",
+                               "/net/screenfreeze/desktopconnector",
+                               True, True)
+        self.iface = dbus.Interface(proxy, 'net.screenfreeze.desktopconnector')
+
+        # check if the dbus connection is working
+        proxy.Introspect(dbus_interface="org.freedesktop.DBus.Introspectable")
+
         bus.add_signal_receiver(self.indicator.update,
                         dbus_interface="net.screenfreeze.desktopconnector",
                         signal_name="changed")
