@@ -27,6 +27,7 @@ logger.setLevel(logging.DEBUG)
 
 class ClipboardListener:
     def __init__(self, on_change_cb):
+        self.previous_text = None
         self.on_change_cb = on_change_cb
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         self.clipboard.connect("owner-change", self.clipboard_change)
@@ -38,7 +39,11 @@ class ClipboardListener:
             return
 
         text = self.clipboard.wait_for_text()
-        self.on_change_cb(text)
+        if self.previous_text == text:
+            logger.debug("[ClipboardListener] clipboard_change: didn't change")
+        else:
+            self.previous_text = text
+            self.on_change_cb(text)
 
 
 class ErrorDialog(Gtk.MessageDialog):
