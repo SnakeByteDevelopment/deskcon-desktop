@@ -5,6 +5,7 @@ import json
 import os
 import signal
 import gi
+import logging
 
 from dbus import glib
 from dbus.mainloop.glib import DBusGMainLoop
@@ -19,16 +20,20 @@ glib.init_threads()
 # FIXME: read config file
 AUTO_STORE_CLIPBOARD = True
 
+logging.basicConfig()
+logger = logging.getLogger("deskcon-indicator")
+logger.setLevel(logging.DEBUG)
+
 
 class ClipboardListener:
     def __init__(self, on_change_cb):
         self.on_change_cb = on_change_cb
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         self.clipboard.connect("owner-change", self.clipboard_change)
-        print "[ClipboardListener] ready"
+        logger.debug("[ClipboardListener] ready")
 
     def clipboard_change(self, clipboard, ev):
-        print "[ClipboardListener] clipboard_change"
+        logger.debug("[ClipboardListener] clipboard_change")
         if not AUTO_STORE_CLIPBOARD:
             return
 
@@ -67,10 +72,12 @@ class IndicatorDeskCon:
         try:
             self.dbusclient = DbusClient(self)
         except dbus.exceptions.DBusException as ex:
+            logger.fatal("[IndicatorDeskCon] DBus: Cannot connect to server. Check if the server is running.")
             self.showMessageDialog("DBus Error", "Cannot connect to server. Check if the server is running.", ex)
             self.handler_menu_exit()
             raise ex
         except Exception as ex:
+            logger.fatal("[IndicatorDeskCon] DBus: Unknown error on dbus client.")
             self.showMessageDialog("DBus Error", "Unknown error on dbus client.", ex)
             self.handler_menu_exit()
             raise ex
