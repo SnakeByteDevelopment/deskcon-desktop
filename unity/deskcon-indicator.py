@@ -11,10 +11,29 @@ from dbus.mainloop.glib import DBusGMainLoop
 
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
-from gi.repository import GObject, Gtk
+from gi.repository import GObject, Gtk, Gdk
 from gi.repository import AppIndicator3 as appindicator
 
 glib.init_threads()
+
+# FIXME: read config file
+AUTO_STORE_CLIPBOARD = True
+
+
+class ClipboardListener:
+    def __init__(self, on_change_cb):
+        self.on_change_cb = on_change_cb
+        self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        self.clipboard.connect("owner-change", self.clipboard_change)
+        print "[ClipboardListener] ready"
+
+    def clipboard_change(self, clipboard, ev):
+        print "[ClipboardListener] clipboard_change"
+        if not AUTO_STORE_CLIPBOARD:
+            return
+
+        text = self.clipboard.wait_for_text()
+        self.on_change_cb(text)
 
 
 class ErrorDialog(Gtk.MessageDialog):
@@ -145,8 +164,9 @@ class IndicatorDeskCon:
 
 class DeviceMenuBundle():
     def __init__(self, indicator, data):
+        self.device = data
         self.indicator = indicator 
-
+        self.clipboard_listener = ClipboardListener(self.onClipboardUpdate)
         self.statsitem = Gtk.MenuItem("")
         self.statsitem.show()
         self.actionmenu = Gtk.Menu()
@@ -200,6 +220,9 @@ class DeviceMenuBundle():
         self.indicator.menu.insert(separator, 2)
 
         self.update(data)
+
+    def onClipboardUpdate(self, text):
+        self.indicator.setclipboard(None, self.device['ip'], self.device['controlport'])
 
     def update(self, data):
         name = data['name']
