@@ -164,9 +164,14 @@ class Connector():
             if message == None or len(message) == 0:
                 print "Error, empty text received on clipboard"
             else:
-                clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-                clipboard.set_text(message.encode("utf-8"), -1)
-                notificationmanager.buildTransientNotification("Clipboard", message)
+                if AUTO_STORE_CLIPBOARD:
+                    clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+                    clipboard.set_text(message.encode("utf-8"), -1)
+                    notificationmanager.buildTransientNotification("Clipboard", message)
+                else:
+                    # FIXME: no timeout / able to select text
+                    notificationmanager.buildNotification("Clipboard", message)
+
 
         elif (msgtype == "MIS_CALL"):
             notificationmanager.buildNotification(
