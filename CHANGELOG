@@ -1,4 +1,5 @@
 Release 0.4
+    Added man page (thanks Kevin MacMartin!)
     README updated
     Show WiFi signal strength
     Fix usage on ping / setClipboard / sms
