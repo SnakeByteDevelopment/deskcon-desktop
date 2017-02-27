@@ -1,21 +1,71 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 import dbus
 import json
 import os
-from gi.repository import GObject, Gtk
-from gi.repository import AppIndicator3 as appindicator
+import signal
+import gi
+import logging
+
 from dbus import glib
 from dbus.mainloop.glib import DBusGMainLoop
+
+gi.require_version('Gtk', '3.0')
+gi.require_version('AppIndicator3', '0.1')
+from gi.repository import GObject, Gtk, Gdk
+from gi.repository import AppIndicator3 as appindicator
+
 glib.init_threads()
+
+# FIXME: read config file
+AUTO_STORE_CLIPBOARD = True
+
+logging.basicConfig()
+logger = logging.getLogger("deskcon-indicator")
+logger.setLevel(logging.DEBUG)
+
+
+class ClipboardListener:
+    def __init__(self, on_change_cb):
+        self.previous_text = None
+        self.on_change_cb = on_change_cb
+        self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        self.clipboard.connect("owner-change", self.clipboard_change)
+        logger.debug("[ClipboardListener] ready")
+
+    def clipboard_change(self, clipboard, ev):
+        logger.debug("[ClipboardListener] clipboard_change")
+        if not AUTO_STORE_CLIPBOARD:
+            return
+
+        text = self.clipboard.wait_for_text()
+        if self.previous_text == text:
+            logger.debug("[ClipboardListener] clipboard_change: didn't change")
+        else:
+            self.previous_text = text
+            self.on_change_cb(text)
+
+
+class ErrorDialog(Gtk.MessageDialog):
+    def __init__(self, title, message):
+        Gtk.MessageDialog.__init__(self, type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK)
+
+        # FIXME: icon on message dialog isn't working
+        #img = Gtk.Image.new_from_icon_name("dialog-question", Gtk.IconSize.DIALOG)
+        #self.set_icon(img.get_pixbuf())
+        self.set_title(title)
+        self.set_markup(message)
+
 
 class IndicatorDeskCon:
     def __init__(self):
-        workingdir = os.getcwd()
-
-        self.ind = appindicator.Indicator.new("indicator-deskcon", 
+        self.ind = appindicator.Indicator.new("indicator-deskcon",
                             "indicator-deskcon",
                             appindicator.IndicatorCategory.APPLICATION_STATUS)
+
+        curr_dir = os.path.dirname(os.path.realpath(__file__))
+        # first try to get the icon from the installed location, if it fails, try on current directory
+        self.ind.set_icon(os.path.join(curr_dir, 'darkindicator-deskcon.svg'))
 
         self.ind.set_status (appindicator.IndicatorStatus.ACTIVE)
 
@@ -23,7 +73,20 @@ class IndicatorDeskCon:
 
         self.menu.show()
         self.ind.set_menu(self.menu)
-        self.dbusclient = DbusClient(self)
+
+        try:
+            self.dbusclient = DbusClient(self)
+        except dbus.exceptions.DBusException as ex:
+            logger.fatal("[IndicatorDeskCon] DBus: Cannot connect to server. Check if the server is running.")
+            self.showMessageDialog("DBus Error", "Cannot connect to server. Check if the server is running.", ex)
+            self.handler_menu_exit()
+            raise ex
+        except Exception as ex:
+            logger.fatal("[IndicatorDeskCon] DBus: Unknown error on dbus client.")
+            self.showMessageDialog("DBus Error", "Unknown error on dbus client.", ex)
+            self.handler_menu_exit()
+            raise ex
+
         self.devicelist = {}
 
         #Settings Button
@@ -36,7 +99,24 @@ class IndicatorDeskCon:
         self.setupdeviceitem.connect("activate", self.setupdevice)
         self.setupdeviceitem.show()
         self.menu.append(self.setupdeviceitem)
-    
+        #Separator
+        separator = Gtk.SeparatorMenuItem()
+        separator.show()
+        self.menu.append(separator)
+        #Quit Button
+        self.quititem = Gtk.MenuItem("Quit")
+        self.quititem.connect("activate", self.handler_menu_exit)
+        self.quititem.show()
+        self.menu.append(self.quititem)
+
+    def showMessageDialog(self, title, message, ex):
+        pango_message = '<span size="large">' + message + '\n\nException:\n\n</span>' \
+                        + '<span font_family="monospace">' + ex.message + '</span>'
+        dialog = ErrorDialog(title, pango_message)
+        dialog.run()
+        dialog.destroy()
+        self.handler_menu_exit()
+
     def update(self):
         try:
             jsonstr = self.dbusclient.getStats()
@@ -68,7 +148,7 @@ class IndicatorDeskCon:
             self.devicelist[uuid].addnotification(text)      
 
     
-    def handler_menu_exit(self, evt):
+    def handler_menu_exit(self, evt=None):
         Gtk.main_quit()
 
     def compose(self, evt, ip, port):
@@ -79,6 +159,9 @@ class IndicatorDeskCon:
 
     def sendfile(self, evt, ip, port):
         self.dbusclient.send_file(ip, port)
+
+    def setclipboard(self, evt, ip, port):
+        self.dbusclient.set_clipboard(ip, port)
 
     def showsettings(self, evt):
         self.dbusclient.show_settings()
@@ -93,8 +176,9 @@ class IndicatorDeskCon:
 
 class DeviceMenuBundle():
     def __init__(self, indicator, data):
+        self.device = data
         self.indicator = indicator 
-
+        self.clipboard_listener = ClipboardListener(self.onClipboardUpdate)
         self.statsitem = Gtk.MenuItem("")
         self.statsitem.show()
         self.actionmenu = Gtk.Menu()
@@ -115,6 +199,12 @@ class DeviceMenuBundle():
                         data['ip'], data['controlport'])
         self.pingitem.show()
         self.actionmenu.append(self.pingitem)
+
+        self.setclipboarditem = Gtk.MenuItem("Set Clipboard")
+        self.setclipboarditem.connect("activate", self.indicator.setclipboard,
+                        data['ip'], data['controlport'])
+        self.setclipboarditem.show()
+        self.actionmenu.append(self.setclipboarditem)
 
         self.sendfileitem = Gtk.MenuItem("Send File(s)")
         self.sendfileitem.connect("activate", self.indicator.sendfile, 
@@ -143,11 +233,16 @@ class DeviceMenuBundle():
 
         self.update(data)
 
+    def onClipboardUpdate(self, text):
+        self.indicator.setclipboard(None, self.device['ip'], self.device['controlport'])
+
     def update(self, data):
         name = data['name']
         volume = str(data['volume'])
         battery = str(data['battery'])
         storage = str(data['storage'])
+        wifistrength = str(data['wifistrength'])
+
         missedsmstxt = ""
         missedcalltxt = ""
         if (data['missedsmscount'] > 0): 
@@ -156,9 +251,11 @@ class DeviceMenuBundle():
             missedcalltxt = "\nmissed Calls "+ str(data['missedcallcount'])
         missedtxt = missedsmstxt+missedcalltxt
         
-        text = (name+
-                "\nBat: "+battery+"% / Vol: "+volume+"% / Str: "+storage+"%"+
-                missedtxt)
+        text = (name + "\nBat: " + battery + "%"
+                + " / Vol: " + volume + "%\n"
+                + "Used Space: " + storage + "%"
+                + " / WiFi: " + wifistrength + "%"
+                + missedtxt)
 
         self.statsitem.set_label(text)
         if (data['canmessage'] and self.composeitem == None):
@@ -194,14 +291,14 @@ class DbusClient():
     def __init__(self, indicator):
         self.indicator = indicator
         bus = dbus.SessionBus()
-        try:
-            proxy = bus.get_object("net.screenfreeze.desktopconnector",
-                                   "/net/screenfreeze/desktopconnector",
-                                   True, True)
-            self.iface = dbus.Interface(proxy, 'net.screenfreeze.desktopconnector')
-        except Exception:
-            print "dbus error"
-       
+        proxy = bus.get_object("net.screenfreeze.desktopconnector",
+                               "/net/screenfreeze/desktopconnector",
+                               True, True)
+        self.iface = dbus.Interface(proxy, 'net.screenfreeze.desktopconnector')
+
+        # check if the dbus connection is working
+        proxy.Introspect(dbus_interface="org.freedesktop.DBus.Introspectable")
+
         bus.add_signal_receiver(self.indicator.update,
                         dbus_interface="net.screenfreeze.desktopconnector",
                         signal_name="changed")
@@ -228,6 +325,10 @@ class DbusClient():
         host = ip + ":" + str(port)
         self.iface.ping_device(host)
 
+    def set_clipboard(self, ip, port):
+        host = ip + ":" + str(port)
+        self.iface.set_clipboard(host)
+
     def send_file(self, ip, port):
         host = ip + ":" + str(port)
         self.iface.send_file(host)
@@ -240,5 +341,6 @@ class DbusClient():
 
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     ind = IndicatorDeskCon()
     ind.main()

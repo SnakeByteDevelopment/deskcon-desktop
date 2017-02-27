@@ -1,3 +1,17 @@
+Release 0.4
+    Added man page (thanks Kevin MacMartin!)
+    README updated
+    Show WiFi signal strength
+    Fix usage on ping / setClipboard / sms
+    Fix crash on clipboard (not converting utf-8)
+    Fix notifications timeout
+    Automatically share clipboard
+    Unity:
+        - Catch Ctrl+C on terminal
+        - Add quit menu item
+        - Add set clipboard item on menu
+        - Set tray icon
+
 Release 0.3
     fixed adding compose button
     

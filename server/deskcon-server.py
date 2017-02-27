@@ -9,17 +9,28 @@ import subprocess
 import platform
 import json
 import os
+import logging
 import notificationmanager
 import filetransfer
 import threading
 import thread
 import configmanager
 import mediacontrol
-from gi.repository import Gtk, GObject, Gdk, GdkPixbuf
+import gi
 from OpenSSL import SSL
 from OpenSSL.SSL import ZeroReturnError
 from dbusservice import DbusThread
 from base64 import b64decode
+
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk, GObject, Gdk, GdkPixbuf
+
+logging.basicConfig()
+logger = logging.getLogger("deskcon-server")
+logger.setLevel(logging.DEBUG)
+
+Gdk.threads_init()
+GObject.threads_init()
 
 configmanager.write_pidfile(str(os.getpid()))
 abspath = os.path.abspath(__file__)
@@ -107,7 +118,7 @@ class Connector():
                 'batterystate': False, 'missedsmscount': 0,
                 'missedcallcount': 0, 'ip': address,
                 'canmessage': False, 'controlport': 9096,
-                'storage': -1})
+                'storage': -1, 'wifistrength': -1})
 
             apos = 0
             for x in range(0, len(self.mid_info['phones'])):
@@ -134,12 +145,11 @@ class Connector():
             maybe_transfer('controlport')
             maybe_transfer('battery')
             maybe_transfer('batterystate')
-            maybe_transfer('volume')
-            maybe_transfer('volume')
             maybe_transfer('missedmsgs', 'missedsmscount')
             maybe_transfer('missedcalls', 'missedcallcount')
             maybe_transfer('canmessage')
             maybe_transfer('storage')
+            maybe_transfer('wifistrength')
             phone['ip'] = address
 
         elif (msgtype == "SMS"):
@@ -162,10 +172,26 @@ class Connector():
                 notificationmanager.buildNotification("URL", "Link: "+message)
 
         elif (msgtype == "CLPBRD"):
+            logger.debug("[Connector] CLPBRD received")
+            if message == None or len(message) == 0:
+                logger.debug("[Connector] CLPBRD received empty text, ignoring it")
+                return
+
             clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-            clipboard.set_text(message, -1)
-            notificationmanager.buildTransientNotification(
-                "Clipboard", message)
+            current_clipboard = clipboard.wait_for_text()
+            logger.debug("[Connector] Current clipboard readed")
+            if current_clipboard == message:
+                logger.info("[Connector] Not updating clipboard, no changes")
+                return
+
+            if AUTO_STORE_CLIPBOARD:
+                logger.debug("[Connector] updating clipboard")
+                clipboard.set_text(message.encode("utf-8"), -1)
+                logger.debug("[Connector] clipboard updated")
+                notificationmanager.buildTransientNotification("Clipboard", message)
+            else:
+                # FIXME: no timeout / able to select text
+                notificationmanager.buildNotification("Clipboard", message)
 
         elif (msgtype == "MIS_CALL"):
             notificationmanager.buildNotification(

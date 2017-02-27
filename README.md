@@ -1,6 +1,6 @@
 DeskCon
 -------
-Version 0.3
+Version 0.4
 
 integrates your Android Device in the Desktop. Receive Notifications, Files
 and Commands from your mobile Device on your Desktop PC. The Data is send over a
@@ -13,9 +13,8 @@ Warning: This Project is still in development (beta) and may contain some Bugs o
 
 Information:
 ------------
-	- Project Website http://www.screenfreeze.net/deskcon
-	- Source https://github.com/screenfreeze/deskcon-desktop
-	- Google Play Store https://play.google.com/store/apps/details?id=net.screenfreeze.deskcon
+	- Project Website https://github.com/fbarriga/deskcon-desktop
+	- Google Play Store https://play.google.com/store/apps/details?id=cl.felipebarriga.deskcon
          
 
 Requirements (Desktop Server):
@@ -24,6 +23,15 @@ Requirements (Desktop Server):
     - pyopenssl
     - GTK3
 
+Requirements (Unity Client):
+------------------------------
+    - Python >= 2.7 < 3.x
+    - from pip:
+        - dbus-python >= 1.2.4
+        - pyOpenSSL >= 16.2.0
+    - install binaries:
+        - pygobject (GTK3) >= 3.22.0
+        - AppIndicator3
 
 Install:
 --------
@@ -31,7 +39,7 @@ Install:
     - start deskcon.sh in Root Folder of the Project
     - (optional) copy the Gnome Shell (>=3.8) Extension to ~/.local/share/gnome-shell/extensions
       and activate it 
-    - (optional) start unity/deskcon-indicator for a Unity Indicator
+    - (optional) start unity/deskcon-indicator.py for a Unity Indicator
     
 
 Usage:
@@ -47,10 +55,13 @@ Usage:
 
 Todo:
 -----
-	- Translations
-	- Mac/Windows support
-	- Fingerprint validation via QR Code
-	- Browser Extensions
+    - Translations
+    - Mac/Windows support
+    - Fingerprint validation via QR Code
+    - Browser Extensions
+    - Add option to automatically share clipboard
+    - Pair client-server using resource discovery (broadcast would work fine)
+    - Use external server to connect without local lan
 
 
 Bugs:
