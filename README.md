@@ -1,6 +1,6 @@
 DeskCon
 -------
-Version 0.3
+Version 0.4
 
 integrates your Android Device in the Desktop. Receive Notifications, Files
 and Commands from your mobile Device on your Desktop PC. The Data is send over a
@@ -13,9 +13,8 @@ Warning: This Project is still in development (beta) and may contain some Bugs o
 
 Information:
 ------------
-	- Project Website http://www.screenfreeze.net/deskcon
-	- Source https://github.com/screenfreeze/deskcon-desktop
-	- Google Play Store https://play.google.com/store/apps/details?id=net.screenfreeze.deskcon
+	- Project Website https://github.com/fbarriga/deskcon-desktop
+	- Google Play Store https://play.google.com/store/apps/details?id=cl.felipebarriga.deskcon
          
 
 Requirements (Desktop Server):
