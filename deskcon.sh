@@ -1,5 +1,4 @@
 #!/bin/bash
 
-BINPATH=`dirname $0`
-cd $BINPATH/server/
-./deskcon-server
+BINPATH=$(pwd)
+$BINPATH/server/deskcon-server.py
