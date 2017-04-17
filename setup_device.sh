@@ -1,5 +1,4 @@
 #!/bin/bash
 
-BINPATH=`dirname $0`
-cd $BINPATH/server/
-./setupdevice.py
+BINPATH=$(pwd)
+$BINPATH/server/setupdevice.py
