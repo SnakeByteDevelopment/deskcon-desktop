@@ -37,6 +37,7 @@ server:
 	cp $(SOURCE_DIR)/server/share/deskcon-server-settings.desktop.in /usr/share/applications/deskcon-server-settings.desktop
 	ln -s $(DEST_DIR)/server/deskcon-server.py /usr/bin/deskcon-server
 	ln -s $(DEST_DIR)/server/settingswindow.py /usr/bin/deskcon-server-settings
+	cp $(SOURCE_DIR)/systemd/deskcon-server.service /etc/systemd/system/
 
 gnome-shell:
 	@echo "Copying files to $(GNOME_EXTENSION_DIR)..."
@@ -49,12 +50,14 @@ unity:
 	$(SOURCE_DIR)/unity/deskcon-indicator.py&
 
 remove:
+	@./runasroot.sh
 	@echo "Removing DeskCon Server..."
 	rm -rf $(DEST_DIR)
 	rm /usr/share/applications/deskcon-server.desktop
 	rm /usr/share/applications/deskcon-server-settings.desktop
 	rm /usr/bin/deskcon-server
 	rm /usr/bin/deskcon-server-settings
+	rm /etc/systemd/system/deskcon-server.service
 	@echo "... done"
 
 sex:

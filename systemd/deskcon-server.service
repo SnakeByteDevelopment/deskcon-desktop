@@ -1,0 +1,11 @@
+[Unit]
+Description=DeskCon Server Unit
+
+[Service]
+Type=simple
+ExecStart=/opt/desk-con/server/deskcon-server.py
+User=%i
+Group=users
+
+[Install]
+WantedBy=multi-user.target
