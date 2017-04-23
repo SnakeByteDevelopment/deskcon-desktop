@@ -1,6 +1,6 @@
 Release 0.5
-    Added systemd service
-    Added Makefile
+    Added systemd service (thanks Tobias Trabelsi)
+    Added Makefile (thanks Tobias Trabelsi)
     README.md updated
     Fixed paths on scripts: os.getcwd => os.path.dirname(os.path.realpath(__file__))
 
