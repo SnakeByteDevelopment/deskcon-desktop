@@ -21,7 +21,7 @@ class EntryWindow(object):
     def __init__(self, ip, port, number):
 
         builder = Gtk.Builder()
-        builder.add_from_file(os.getcwd()+"/share/ui/sms.glade")
+        builder.add_from_file(os.path.dirname(os.path.realpath(__file__))+"/share/ui/sms.glade")
         builder.connect_signals(self)
         self.window = builder.get_object("smswindow")
         self.numberentry = builder.get_object("numberentry")

@@ -6,7 +6,7 @@ import authentication
 import random
 
 homedir = os.path.expanduser('~')
-default_configfile = os.getcwd()+"/share/config.conf"
+default_configfile = os.path.dirname(os.path.realpath(__file__))+"/share/config.conf"
 
 config = ConfigParser.ConfigParser()
 configdir = homedir + "/.deskcon/"

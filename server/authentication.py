@@ -7,7 +7,7 @@ import hashlib
 import subprocess
 import os
 
-PROGRAMDIR = os.getcwd()
+PROGRAMDIR = os.path.dirname(os.path.realpath(__file__))
 
 def generate_keypair(uuid):
     hostname = socket.gethostname()
