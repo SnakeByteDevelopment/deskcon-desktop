@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-BINPATH=$(pwd)
-$BINPATH/server/deskcon-server.py
+SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+$SCRIPT_DIR/server/deskcon-server.py

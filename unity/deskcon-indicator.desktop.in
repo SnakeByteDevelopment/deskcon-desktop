@@ -1,12 +1,12 @@
 [Desktop Entry]
 Name=DeskCon Indicator
 Comment=DeskCon Indicator
-Exec=deskcon-indicator
+Exec=PREFIX/bin/deskcon-indicator
+Icon=INSTALL_DEST_DIR/unity/indicator-deskcon.svg
 Type=Application
 Terminal=false
 StartupNotify=false
-Categories=
-OnlyShowIn=GNOME;Unity;
+Categories=Utility;
 X-GNOME-Autostart-Delay=5
 X-GNOME-Autostart-Phase=Application
 X-GNOME-Autostart-Notify=true

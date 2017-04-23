@@ -1,3 +1,9 @@
+Release 0.5
+    Added systemd service
+    Added Makefile
+    README.md updated
+    Fixed paths on scripts: os.getcwd => os.path.dirname(os.path.realpath(__file__))
+
 Release 0.4
     Added man page (thanks Kevin MacMartin!)
     README updated
