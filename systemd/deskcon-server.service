@@ -4,6 +4,8 @@ Description=DeskCon Server Unit
 [Service]
 Type=simple
 ExecStart=INSTALL_DEST_DIR/deskcon.sh
+Restart=always
+RestartSec=1
 
 [Install]
 WantedBy=multi-user.target

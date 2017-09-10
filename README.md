@@ -59,6 +59,12 @@ Usage:
     - select Network > Desktop Hosts
     - click the + Button and enter the IP of your Desktop PC
     - check whether the Fingerprints match
+
+Contacts:
+---------
+    - You may also DAVDroid, a CalDav Server (eg. Nextcloud), and GNOME Contacts
+      to sync your Android contacts with GNOME 
+      so that you may lookup contacts in the SMS Sending Interface
     
 Todo:
 -----
