@@ -155,7 +155,7 @@ class SMSReceivedNotification(threading.Thread):
         self.sms_notification = Notify.Notification.new("SMS from "+name, message, icon_name)
         # Fedora workaround
         try:
-            self.sms_notification.add_action("reply", "reply", self.reply_sms, None, None)
+            self.sms_notification.add_action("reply", "reply", self.reply_sms, None)
         except TypeError:
             self.sms_notification.add_action("reply", "reply", self.reply_sms, None)
         
