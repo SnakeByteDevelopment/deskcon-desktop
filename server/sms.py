@@ -5,6 +5,7 @@ import sys
 import tls
 import argparse
 import gi
+
 gi.require_version('Gtk', '3.0')
 gi.require_version('EDataServer', '1.2')
 gi.require_version('EBook', '1.2')
@@ -18,28 +19,32 @@ parser.add_argument(
     'number', nargs='?',
     help='optional phone number',
     default='')
+parser.add_argument(
+    'msg', nargs='?',
+    help='optional message',
+    default='')
+
 
 class EntryWindow(object):
-
     PHONE_PROPS = (
-            'primary-phone',
-            'mobile-phone',
-            'business-phone',
-            'home-phone',
-            'business-phone-2',
-            'home-phone-2',
-            'company-phone',
-            'other-phone',
-            'assistant-phone',
-            'callback-phone',
-            'car-phone',
-            'pager'
-        )
+        'primary-phone',
+        'mobile-phone',
+        'business-phone',
+        'home-phone',
+        'business-phone-2',
+        'home-phone-2',
+        'company-phone',
+        'other-phone',
+        'assistant-phone',
+        'callback-phone',
+        'car-phone',
+        'pager'
+    )
 
     def __init__(self, ip, port, number):
 
         builder = Gtk.Builder()
-        builder.add_from_file(os.path.dirname(os.path.realpath(__file__))+"/share/ui/sms.glade")
+        builder.add_from_file(os.path.dirname(os.path.realpath(__file__)) + "/share/ui/sms.glade")
         builder.connect_signals(self)
         self.window = builder.get_object("smswindow")
         self.numberentry = builder.get_object("numberentry")
@@ -47,27 +52,27 @@ class EntryWindow(object):
         self.charlabel = builder.get_object("charcountlabel")
         self.errordialog = builder.get_object("errordialog")
 
-        self.window.set_wmclass ("DeskCon", "Compose")
+        self.window.set_wmclass("DeskCon", "Compose")
 
         self.ip = ip
         self.port = port
 
-        # get address book from eds
-        eds_registry = EDataServer.SourceRegistry.new_sync(None)
-        address_book_source = EDataServer.SourceRegistry.ref_default_address_book(eds_registry)
-        self.address_book_client = EBook.BookClient.new(address_book_source)
-
-        # init list store
-        self.liststore = Gtk.ListStore(GObject.TYPE_STRING, GObject.TYPE_STRING)
-
-        # register completion for numberentry
-        completion = Gtk.EntryCompletion()
-        self.numberentry.set_completion(completion)
-        completion.set_model(self.eds_search("")) # get all data
-        completion.set_text_column(0)
-
-        completion.connect("match-selected", self.on_completion_select_number)
-        completion.set_match_func(self.fuzzy_match, None)
+        # # get address book from eds
+        # eds_registry = EDataServer.SourceRegistry.new_sync(None)
+        # address_book_source = EDataServer.SourceRegistry.ref_default_address_book(eds_registry)
+        # self.address_book_client = EBook.BookClient.new(address_book_source)
+        #
+        # # init list store
+        # self.liststore = Gtk.ListStore(GObject.TYPE_STRING, GObject.TYPE_STRING)
+        #
+        # # register completion for numberentry
+        # completion = Gtk.EntryCompletion()
+        # self.numberentry.set_completion(completion)
+        # completion.set_model(self.eds_search("")) # get all data
+        # completion.set_text_column(0)
+        #
+        # completion.connect("match-selected", self.on_completion_select_number)
+        # completion.set_match_func(self.fuzzy_match, None)
 
         self.numberentry.set_text(number)
 
@@ -85,7 +90,7 @@ class EntryWindow(object):
                 value = contact.get_property(phone_type)
                 if value:
                     phone_number = contact.get_property(phone_type)
-                    self.liststore.append([full_name + ': '+ phone_number, phone_number])
+                    self.liststore.append([full_name + ': ' + phone_number, phone_number])
         sorted_list = Gtk.TreeModelSort(self.liststore)
         sorted_list.set_sort_column_id(0, Gtk.SortType.ASCENDING)
 
@@ -93,7 +98,7 @@ class EntryWindow(object):
 
     # match all words from for completion
     def fuzzy_match(self, completion, key_string, iter, data):
-        row_string = completion.get_model().get_value(iter,0)
+        row_string = completion.get_model().get_value(iter, 0)
 
         words = key_string.split()
         word_count_matches = 0
@@ -104,13 +109,13 @@ class EntryWindow(object):
         return word_count_matches >= len(words)
 
     def on_completion_select_number(self, entry_completion, model, iter):
-        entry_completion.get_entry().set_text(model.get_value(iter,1))
+        entry_completion.get_entry().set_text(model.get_value(iter, 1))
         return True
 
     def on_sendbutton_clicked(self, widget):
         siter = self.textbuffer.get_start_iter()
         eiter = self.textbuffer.get_end_iter()
-        txt = self.textbuffer.get_text(siter, eiter,  False).strip()
+        txt = self.textbuffer.get_text(siter, eiter, False).strip()
         number = self.numberentry.get_text().strip()
 
         if (number == ""):
@@ -139,7 +144,6 @@ class EntryWindow(object):
 
 
 def send_sms(recver, msg, host, port, errordialog):
-
     data = {'number': recver, 'message': msg}
 
     try:
@@ -153,7 +157,7 @@ def send_sms(recver, msg, host, port, errordialog):
                 "The Device is not reachable. "
                 "Maybe it's not on your Network")
         else:
-            errordialog.format_secondary_text("Errornumber "+str(errnum))
+            errordialog.format_secondary_text("Errornumber " + str(errnum))
         errordialog.run()
         errordialog.hide()
 
@@ -163,12 +167,12 @@ def send_sms(recver, msg, host, port, errordialog):
 
 def main(options):
     GObject.threads_init()
-    win = EntryWindow(options.ip, options.port, options.number)
+    if options.msg != "":
+        send_sms(options.number, options.msg, options.ip, options.port, None)
+    win = EntryWindow(options.ip, options.port)
     win.run()
 
 
 if __name__ == '__main__':
     options = parser.parse_args()
     main(options)
-
-

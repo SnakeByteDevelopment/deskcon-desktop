@@ -267,8 +267,8 @@ class Connector():
 
         #print json.dumps(self.mid_info)
 
-    def compose_sms(self, number, ip, port):
-        subprocess.Popen([PROGRAMDIR+"/sms.py", ip, port, number], stdin=subprocess.PIPE,
+    def compose_sms(self, number, ip, port, msg):
+        subprocess.Popen([PROGRAMDIR+"/sms.py", ip, port, number, msg], stdin=subprocess.PIPE,
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def ping_device(self, ip, port):
