@@ -1,9 +1,9 @@
-import json
 import socket
 
 from OpenSSL import SSL, crypto
 
 import configmanager
+from server.models.sslMessage import SslMessage
 
 
 def ignore_fail(callable):
@@ -34,41 +34,35 @@ class TLSConnection(object):
         ctx.load_verify_locations(configmanager.cafilepath)
         self.host, self.port = host, port
 
-    def message(self, obj):
-        message = json.dumps(obj)
-        self.sslclientsocket.sendall(message)
-        buffer = ""
-        buffer += self.sslclientsocket.recv(2)
-        while len(buffer) < 2:
-            buffer += self.sslclientsocket.recv(1)
-        return buffer
+    def message(self, message):
+        self.send(message.dump_to_json())
+        response_buffer = ""
+        response_buffer += self.recv(2)
+        while len(response_buffer) < 2:
+            response_buffer += self.recv(1)
+        return response_buffer
 
     def command(self, type, data=None):
         uuid = configmanager.uuid
         hostname = socket.gethostname()
 
-        jsonobj = {
-            'uuid': uuid,
-            'name': hostname,
-            'type': type,
-            'data': data,
-        }
-        return self.message(jsonobj)
+        ssl_message = SslMessage(uuid, hostname, type, data)
+        return self.message(ssl_message)
 
     def send(self, data):
-        self.sslclientsocket.sendall(data)
+        self.ssl_client_socket.sendall(data)
 
     def recv(self, nbytes):
-        self.sslclientsocket.recv(nbytes)
+        self.ssl_client_socket.recv(nbytes)
 
     def close(self):
-        ignore_fail(self.sslclientsocket.close)
-        ignore_fail(self.sslclientsocket.shutdown)
+        ignore_fail(self.ssl_client_socket.close)
+        ignore_fail(self.ssl_client_socket.shutdown)
 
     def __enter__(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sslclientsocket = SSL.Connection(self.ctx, sock)
-        self.sslclientsocket.connect((self.host, self.port))
+        self.ssl_client_socket = SSL.Connection(self.ctx, sock)
+        self.ssl_client_socket.connect((self.host, self.port))
         return self
 
     def __exit__(self, type, ex, tb):

@@ -22,6 +22,10 @@ from OpenSSL.SSL import ZeroReturnError
 from dbusservice import DbusThread
 from base64 import b64decode
 
+from server.models.dataObject import DataObject
+from server.models.phone import Phone
+from server.models.sessionInfo import SessionInfo
+
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GObject, Gdk, GdkPixbuf
 
@@ -59,7 +63,8 @@ class Connector():
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGUSR1, self.signal_handler)
         self.uuid_list = {}
-        self.mid_info = {'phones': [], 'settings': {}}
+        self.mid_info = SessionInfo()
+        # self.mid_info = {'phones': [], 'settings': {}}
         self.last_notification = ""
 
         self.dbus_service_thread = DbusThread(self)
@@ -100,60 +105,21 @@ class Connector():
         return self.last_notification
 
     def parseData(self, data, address, csocket):
-        jsondata = json.loads(data)
-        uuid = jsondata['uuid']
-        name = jsondata['devicename']
-        msgtype = jsondata['type']
-        message = jsondata['data']
+        data_object = DataObject(**json.loads(data))
+        print data_object.to_nice_string()
 
-        print "UUID", uuid
-        print "NAME", name
-        print "TYPE", msgtype
-        print "MSG", message
+        phone = \
+            Phone(data_object.uuid, data_object.device_name, None, None, False, 0, 0, address, False, 9096, None, None)
 
-        if uuid not in self.uuid_list:
-            self.mid_info['phones'].append({
-                'uuid': uuid, 'name': name,
-                'battery': -1, 'volume': -1,
-                'batterystate': False, 'missedsmscount': 0,
-                'missedcallcount': 0, 'ip': address,
-                'canmessage': False, 'controlport': 9096,
-                'storage': -1, 'wifistrength': -1})
+        if [phone.uuid for phone in self.mid_info.phones if phone.uuid == data_object.uuid]:
+            self.mid_info.phones.append(phone)
+            print "created "+data_object.uuid
 
-            apos = 0
-            for x in range(0, len(self.mid_info['phones'])):
-                if self.mid_info['phones'][x]['uuid'] == uuid:
-                    apos = x
+        if data_object.data_type == "STATS":
+            phone.state = data_object.data
 
-            self.uuid_list[uuid] = apos
-            print "created "+uuid+" at pos "+str(apos)
-
-        pos = self.uuid_list[uuid]
-        phone = self.mid_info['phones'][pos]
-
-        if (msgtype == "STATS"):
-            newstats = json.loads(message)
-
-            def maybe_transfer(key, new=None):
-                if key in newstats:
-                    if new is not None:
-                        phone[new] = newstats[key]
-                    else:
-                        phone[key] = newstats[key]
-
-            maybe_transfer('volume')
-            maybe_transfer('controlport')
-            maybe_transfer('battery')
-            maybe_transfer('batterystate')
-            maybe_transfer('missedmsgs', 'missedsmscount')
-            maybe_transfer('missedcalls', 'missedcallcount')
-            maybe_transfer('canmessage')
-            maybe_transfer('storage')
-            maybe_transfer('wifistrength')
-            phone['ip'] = address
-
-        elif (msgtype == "SMS"):
-            smsobj = json.loads(message)
+        elif (data_object.data_type == "SMS"):
+            smsobj = json.loads(data_object.data)
             name = smsobj['name']
             number = smsobj['number']
             smsmess = smsobj['message']
@@ -197,11 +163,11 @@ class Connector():
             notificationmanager.buildNotification(
                 name, "missed Call from " + message)
 
-        elif (msgtype == "PING"):
+        elif (data_object.data_type == "PING"):
             notificationmanager.buildTransientNotification(
-                "Ping from " + name,
-                "Name: " + name +
-                "\nUUID: " + uuid +
+                "Ping from " + data_object.device_name,
+                #"Name: " + name +
+                #"\nUUID: " + uuid +
                 "\nIP: " + address)
 
         elif (msgtype == "OTH_NOT"):
