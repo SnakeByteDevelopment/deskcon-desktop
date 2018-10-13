@@ -16,7 +16,7 @@ class DataObject(object):
         self.phone = phone
 
     def to_nice_string(self):
-        print "UUID", self.uuid, \
+        print("UUID", self.uuid, \
             "NAME", self.device_name, \
             "TYPE", self.data_type, \
-            "MSG", self.data
+            "MSG", self.data)

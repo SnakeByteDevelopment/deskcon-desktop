@@ -2,7 +2,7 @@
 
 import os
 import sys
-import configmanager
+from . import configmanager
 import json
 from gi.repository import Gtk, GObject
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 import sys
-import configmanager
+from . import configmanager
 from gi.repository import Gio, GLib, Gtk, GObject, Gdk
 
 
@@ -77,12 +77,12 @@ def main(args):
     devicefp = args[2]
     pairing = PairingWindow(myfp, devicefp)
     choice = pairing.start()
-    print choice
+    print(choice)
 
 
 if __name__ == '__main__':
     if(len(sys.argv) < 2):
-        print "not enough arguments given"
+        print("not enough arguments given")
     else:
         main(sys.argv)
 

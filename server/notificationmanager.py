@@ -22,8 +22,8 @@ def buildTransientNotification(header, body):
 
 def buildBigNotification(header, body, imagePixbuf):
     if imagePixbuf is not None:
-        print "width", imagePixbuf.get_width()
-        print "height", imagePixbuf.get_height()
+        print("width", imagePixbuf.get_width())
+        print("height", imagePixbuf.get_height())
         notification=Notify.Notification.new(header, body)
         notification.set_image_from_pixbuf(imagePixbuf)
     else:

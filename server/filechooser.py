@@ -3,7 +3,7 @@ import os
 import sys
 import threading
 import json
-import tls
+from . import tls
 import gi
 import argparse
 gi.require_version('Gtk', '3.0')
@@ -75,19 +75,19 @@ def send_data(dialog, files, ip, port, pd):
     try:
         with tls.TLSConnection(HOST, PORT) as conn:
             response = conn.command('fileup', data)
-            print "response: "+response
+            print("response: "+response)
             if response == "OK":
                 # Get total transfer size
                 global total_size
                 for filepath in files:
                     total_size = total_size + os.path.getsize(filepath)
 
-                print "send files"
+                print("send files")
                 for filepath in files:
                     send_file(filepath, conn, pd)
-                print "succesfully send Files"
+                print("succesfully send Files")
     except Exception as e:
-        print "Error " + str(e)
+        print("Error " + str(e))
     finally:
         dialog.destroy()
 

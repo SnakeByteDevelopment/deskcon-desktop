@@ -1,3 +1,2 @@
-:w
-dbus-python>= 1.2.4
 pyOpenSSL>= 16.2.0
+pygobject

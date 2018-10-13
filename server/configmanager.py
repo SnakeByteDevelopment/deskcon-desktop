@@ -1,14 +1,14 @@
 import os
-import ConfigParser
+import configparser
 import time
 import shutil
-import authentication
+from . import authentication
 import random
 
 homedir = os.path.expanduser('~')
 default_configfile = os.path.dirname(os.path.realpath(__file__)) + "/share/config.conf"
 
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 configdir = homedir + "/.deskcon/"
 configfile = configdir + "config.conf"
 pidfile = configdir + "server.pid"
@@ -45,11 +45,11 @@ if os.path.isfile(configfile):
     privatekey = open(privatekeypath, "r").read()
     certificate = open(certificatepath, "r").read()
 else:
-    print "created new config file"
+    print("created new config file")
     copy_default_config()
     config.read(configfile)
     # gen uuid
-    uuid = random.randint(100000000000000L, 999999999999999L)
+    uuid = random.randint(100000000000000, 999999999999999)
     # set Path to Download Folder
     default_download_dir = os.path.join(homedir, "Downloads")
     cfgfile = open(configfile, 'w')

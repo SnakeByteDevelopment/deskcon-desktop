@@ -1,8 +1,9 @@
+import threading
+
 import dbus
 import dbus.service
-import threading
-from gi.repository import GObject, Gtk
 from dbus.mainloop.glib import DBusGMainLoop
+from gi.overrides import GObject, Gtk
 
 dbusname = 'net.screenfreeze.desktopconnector'
 
@@ -83,7 +84,7 @@ class DbusThread(threading.Thread):
 
         @dbus.service.method(dbusname, in_signature='s')
         def set_clipboard(self, host):
-            print "dbus set clipboard"
+            print("dbus set clipboard")
             ip = host.split(":")[0]
             port = host.split(":")[1]
             self.connector.set_clipboard(ip, port)

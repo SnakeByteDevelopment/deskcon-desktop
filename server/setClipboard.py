@@ -4,8 +4,8 @@ gi.require_version('Gtk', '3.0')
 gi.require_version('Notify', '0.7')
 from gi.repository import Gtk, Gdk
 
-import notificationmanager
-import tls
+from . import notificationmanager
+from . import tls
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -25,7 +25,7 @@ def set_clipboard( host, port):
             conn.command('clpbrd', data)
     except Exception as e:
         errnum = e[0]
-        print "Error " + str(e[0])
+        print("Error " + str(e[0]))
         if (errnum == -5):
             notificationmanager.buildTransientNotification("Error setting clipboard!",
                 "The Device is not reachable. "

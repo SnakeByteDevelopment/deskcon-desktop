@@ -2,7 +2,7 @@
 
 import os
 import sys
-import tls
+from . import tls
 import argparse
 import gi
 
@@ -151,7 +151,7 @@ def send_sms(recver, msg, host, port, errordialog):
             conn.command('sms', data)
     except Exception as e:
         errnum = e[0]
-        print "Error " + str(e[0])
+        print("Error " + str(e[0]))
         if (errnum == -5):
             errordialog.format_secondary_text(
                 "The Device is not reachable. "

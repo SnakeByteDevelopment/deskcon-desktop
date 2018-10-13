@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 import socket
-import SocketServer
+import socketserver
 import subprocess
 import platform
 import json
@@ -11,8 +11,8 @@ import random
 import hashlib
 import os
 import threading
-import thread
-import configmanager
+import _thread
+from . import configmanager
 import ssl
 from OpenSSL import SSL, crypto
 
@@ -27,7 +27,7 @@ def pair(q):
 
     serversocket.listen(1)
 
-    print "waiting for Connection"
+    print("waiting for Connection")
 
     (clientsocket, address) = serversocket.accept()
 
@@ -36,13 +36,13 @@ def pair(q):
     if req=="P":
         pair_client(clientsocket, q)
     else:
-        print "closed"
+        print("closed")
 
     clientsocket.close()
 
 
 def pair_client(clientsocket, q):
-    print "wants to pair"       
+    print("wants to pair")       
     mycert = open(os.path.join(configmanager.keydir, "server.crt"), "r").read()
     secure_port = str(configmanager.secure_port)
 
@@ -50,7 +50,7 @@ def pair_client(clientsocket, q):
     m = hashlib.sha256(myder_cert)
     myfp = m.hexdigest().upper()
     myfp = " ".join(myfp[i:i+4] for i in range(0, len(myfp), 4))
-    print "\nMy SHA256: "+myfp
+    print("\nMy SHA256: "+myfp)
     #send my certiuficate
     clientsocket.sendall(myder_cert.encode('base64'))
 
@@ -60,13 +60,13 @@ def pair_client(clientsocket, q):
     m = hashlib.sha256(clientcert)
     devicefp = m.hexdigest().upper()
     devicefp = " ".join(devicefp[i:i+4] for i in range(0, len(devicefp), 4))
-    print "\nClient SHA256: "+devicefp
+    print("\nClient SHA256: "+devicefp)
 
     if (q): #GUI 
         q.put([myfp, devicefp])
         vout = q.get(True)
     else: #CMDLine only
-        vout = raw_input("Do they match?(yes/no)\n") 
+        vout = input("Do they match?(yes/no)\n") 
 
     if (vout.strip().lower()=="yes"):
         clientsocket.sendall(secure_port+"\n")
@@ -74,7 +74,7 @@ def pair_client(clientsocket, q):
         clientsocket.sendall("0\n");
         pass
 
-    print "wait for Device..."
+    print("wait for Device...")
     ack = clientsocket.recv(2)
 
     if (ack=="OK"):
@@ -86,12 +86,12 @@ def pair_client(clientsocket, q):
             q.put(1)
 
         restart_server()
-        print "Successfully paired the Device!"
+        print("Successfully paired the Device!")
 
     else:
         if (q):
             q.put(0)
-        print "Failed to pair Device."
+        print("Failed to pair Device.")
 
 def restart_server():
     pid = int(open(configmanager.pidfile, "r").read())

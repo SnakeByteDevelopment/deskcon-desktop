@@ -2,14 +2,14 @@
 
 import os
 import sys
-import configmanager
+from . import configmanager
 import json
 import socket
 from gi.repository import Gtk, GObject
-import pair
+from . import pair
 from multiprocessing import Process, Queue
 import threading
-import thread
+import _thread
 
 class EntryWindow():
 
@@ -98,7 +98,7 @@ class discoveryThread (threading.Thread):
 
             spl = data.split("::")
             if (spl[0] == "0"):
-                print "received discovery broadcast"
+                print("received discovery broadcast")
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 s.bind(('', 0))
                 s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -128,7 +128,7 @@ class pairingThread (threading.Thread):
         self.window.stage = 2
 
     def response(self, r):
-        thread.start_new_thread(self.sendresponse, (r,))
+        _thread.start_new_thread(self.sendresponse, (r,))
 
     def sendresponse(self, r):
         if (r == 1): #fingerprints match

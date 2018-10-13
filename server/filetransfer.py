@@ -1,11 +1,11 @@
 import os
 import re
-import configmanager
+from . import configmanager
 
 DOWNLOAD_DIR = configmanager.get_download_dir()
 
 def write_files(filenames, csocket):
-    print "write files"
+    print("write files")
     csocket.sendall('1') # accept send
 
     filepaths = []

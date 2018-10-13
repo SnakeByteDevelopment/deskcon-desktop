@@ -2,7 +2,7 @@ import random
 from OpenSSL import SSL, crypto
 import socket
 import ssl
-import configmanager
+from . import configmanager
 import hashlib
 import subprocess
 import os
@@ -33,7 +33,7 @@ def generate_keypair(uuid):
 
 
 def pair(clientsocket):
-    print "wants to pair"       
+    print("wants to pair")       
     mycert = open(os.path.join(configmanager.keydir, "server.crt"), "r").read()
     secure_port = str(configmanager.secure_port)
 
@@ -41,7 +41,7 @@ def pair(clientsocket):
     m = hashlib.sha256(myder_cert)
     myfp = m.hexdigest().upper()
     myfp = " ".join(myfp[i:i+4] for i in range(0, len(myfp), 4))
-    print "\nMy SHA256: "+myfp
+    print("\nMy SHA256: "+myfp)
     #send my certiuficate
     clientsocket.sendall(myder_cert.encode('base64'))
 
@@ -51,7 +51,7 @@ def pair(clientsocket):
     m = hashlib.sha256(clientcert)
     devicefp = m.hexdigest().upper()
     devicefp = " ".join(devicefp[i:i+4] for i in range(0, len(devicefp), 4))
-    print "\nClient SHA256: "+devicefp
+    print("\nClient SHA256: "+devicefp)
     
     fpdiag = subprocess.Popen([PROGRAMDIR+"/fingerprints.py", myfp, devicefp], stdout=subprocess.PIPE)
     (vout, verr) = fpdiag.communicate()
@@ -67,9 +67,9 @@ def pair(clientsocket):
         #save pub key
         with open(os.path.join(configmanager.keydir, "cas.pem"), 'a') as the_file:
             the_file.write(ssl.DER_cert_to_PEM_cert(clientcert))
-        print "Successfully paired the Device!"
+        print("Successfully paired the Device!")
 
     else:
-        print "Failed to pair Device."
+        print("Failed to pair Device.")
 
 

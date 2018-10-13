@@ -10,7 +10,7 @@ import platform
 import signal
 import socket
 import subprocess
-import thread
+import _thread
 import threading
 import webbrowser
 from base64 import b64decode
@@ -18,11 +18,11 @@ from base64 import b64decode
 from OpenSSL import SSL
 from OpenSSL.SSL import ZeroReturnError
 
-import configmanager
-import filetransfer
-import mediacontrol
-import notificationmanager
-from dbusservice import DbusThread
+from . import configmanager
+from . import filetransfer
+from . import mediacontrol
+from . import notificationmanager
+from .dbusservice import DbusThread
 from server.models.dataObject import DataObject
 from server.models.phone import Phone, PhoneState
 from server.models.sessionInfo import SessionInfo
@@ -80,12 +80,12 @@ class Connector:
         GObject.threads_init()
         self.dbus_service_thread.start()
         self.sslserver.start()
-        print "Server started"
+        print("Server started")
         signal.pause()
 
     def signal_handler(self, signum, frame):
         if (signum == 10):
-            print "restart Server"
+            print("restart Server")
             self.sslserver.stop()
             self.sslserver.join()
             # reload settings
@@ -94,10 +94,10 @@ class Connector:
             self.sslserver = SslServer(self)
             self.sslserver.daemon = True
             self.sslserver.start()
-            print "Server started"
+            print("Server started")
             signal.pause()
         else:
-            print "shuting down Server"
+            print("shuting down Server")
             self.sslserver.stop()
             self.sslserver.join()
 
@@ -109,7 +109,7 @@ class Connector:
 
     def parseData(self, data, address, csocket):
         data_object = DataObject(**json.loads(data))
-        print data_object.to_nice_string()
+        print(data_object.to_nice_string())
 
         for phone in self.mid_info.phones:
             if phone.uuid == data_object.uuid:
@@ -119,7 +119,7 @@ class Connector:
             data_object.phone = Phone(data_object.uuid, data_object.device_name, None, None, False, 0, 0,
                                       address, False, 9096, None, None)
             self.mid_info.phones.append(data_object.phone)
-            print "created " + data_object.uuid
+            print("created " + data_object.uuid)
 
         if data_object.data_type == "STATS":
             data_object.phone.state = PhoneState(**data_object.data)
@@ -189,24 +189,24 @@ class Connector:
         elif data_object.data_type == "FILE_UP":
             filenames = data_object.data
             if AUTO_ACCEPT_FILES:
-                print "accepted"
+                print("accepted")
                 filePaths = filetransfer.write_files(filenames, csocket)
                 notificationmanager.buildFileReceivedNotification(
                     filePaths, self.open_file)
             else:
                 accepted = notificationmanager.buildIncomingFileNotification(
                     filenames, data_object.phone.device_name)
-                print "wait for ui"
+                print("wait for ui")
                 if (accepted):
-                    print "accepted"
+                    print("accepted")
                     fpaths = filetransfer.write_files(filenames, csocket)
                     notificationmanager.buildFileReceivedNotification(
                         fpaths, self.open_file)
                 else:
-                    print "not accepted"
+                    print("not accepted")
 
         elif data_object.data_type == "MEDIACTRL":
-            thread.start_new_thread(mediacontrol.control, (data_object.data,))
+            _thread.start_new_thread(mediacontrol.control, (data_object.data,))
 
         elif data_object.data == "NOT_BIG":
             obj = json.loads(data_object.data)
@@ -227,10 +227,10 @@ class Connector:
                     pixbuf = None
 
                 notificationmanager.buildBigNotification(title, text, pixbuf)
-                print "NOT_BIG captured"
+                print("NOT_BIG captured")
 
         else:
-            print "ERROR: Non parsable Data received"
+            print("ERROR: Non parsable Data received")
 
     def compose_sms(self, number, ip, port, msg):
         subprocess.Popen([PROGRAMDIR + "/sms.py", ip, port, number, msg], stdin=subprocess.PIPE,
@@ -245,7 +245,7 @@ class Connector:
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def set_clipboard(self, ip, port):
-        print "setting clipboard"
+        print("setting clipboard")
         subprocess.Popen([PROGRAMDIR + "/setClipboard.py", ip, port], stdin=subprocess.PIPE,
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -290,7 +290,7 @@ class SslServer(threading.Thread):
         except Exception as e:
             error = e[0]
             if len(error) > 0:  # ignore empty cafile error
-                print error
+                print(error)
         self.sslserversocket = SSL.Connection(ctx, socket.socket(socket.AF_INET,
                                                                  socket.SOCK_STREAM))
 
@@ -302,7 +302,7 @@ class SslServer(threading.Thread):
             try:
                 sslcsocket, ssladdress = self.sslserversocket.accept()
                 address = format(ssladdress[0])
-                print "SSL connected"
+                print("SSL connected")
                 # receive data
                 data = sslcsocket.recv(4096)
                 try:
@@ -323,14 +323,14 @@ class SslServer(threading.Thread):
             except Exception as e:
                 errnum = e[0]
                 if errnum != 22:
-                    print "Error " + str(e[0])
+                    print("Error " + str(e[0]))
             finally:
                 # close connection
                 if sslcsocket:
                     sslcsocket.shutdown()
                     sslcsocket.close()
 
-        print "Server stopped"
+        print("Server stopped")
 
     def stop(self):
         self.running = False
@@ -356,5 +356,5 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print "\nServer stopped"
+        print("\nServer stopped")
         pass

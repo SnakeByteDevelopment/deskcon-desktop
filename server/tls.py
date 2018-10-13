@@ -2,7 +2,7 @@ import socket
 
 from OpenSSL import SSL, crypto
 
-import configmanager
+from . import configmanager
 from server.models.sslMessage import SslMessage
 
 

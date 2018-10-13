@@ -3,8 +3,8 @@
 import sys
 import socket
 import argparse
-import configmanager
-from tls import TLSConnection
+from . import configmanager
+from .tls import TLSConnection
 
 import argparse
 

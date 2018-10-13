@@ -1,19 +1,19 @@
 #!/usr/bin/env python2
 
-import dbus
 import json
+import logging
 import os
 import signal
-import gi
-import logging
 
+import dbus
+import gi
 from dbus import glib
 from dbus.mainloop.glib import DBusGMainLoop
+from gi.overrides import Gdk, Gtk, GObject
+from gi.repository import AppIndicator3 as appindicator
 
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
-from gi.repository import GObject, Gtk, Gdk
-from gi.repository import AppIndicator3 as appindicator
 
 glib.init_threads()
 
@@ -124,13 +124,13 @@ class IndicatorDeskCon:
             jsonstr = "{}"
         data = json.loads(jsonstr)
 
-        if (not data.has_key('phones')):
+        if ('phones' not in data):
             return
         devices = data['phones']
 
         for device in devices:
             uuid = device['uuid']
-            if (self.devicelist.has_key(uuid)):
+            if (uuid in self.devicelist):
                 self.devicelist[uuid].update(device)
             else:
                 newdevice = DeviceMenuBundle(self, device)
@@ -141,7 +141,7 @@ class IndicatorDeskCon:
         uuid = notification[0]
         text = notification[1]
 
-        if (self.devicelist.has_key(uuid)):
+        if (uuid in self.devicelist):
             self.devicelist[uuid].addnotification(text)
         else:
             self.update()
